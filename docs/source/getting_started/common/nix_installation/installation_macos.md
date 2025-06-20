@@ -12,14 +12,13 @@
 
 ## Installing Nix
 
-Simply run this (entire) command in `Terminal.app` (the cache is shared with openlane):
+Simply run this (entire) command in `Terminal.app`:
 
 ```console
-$ sh <(curl -L https://nixos.org/nix/install) --yes --nix-extra-conf-file /dev/stdin <<EXTRA_NIX_CONF
-extra-experimental-features = nix-command flakes
-extra-substituters = https://openlane.cachix.org
-extra-trusted-public-keys = openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
-EXTRA_NIX_CONF
+$ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm --extra-conf "
+    extra-substituters = https://nix-cache.fossi-foundation.org
+    extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=
+"
 ```
 
 Enter your password if prompted. This should take around 5 minutes.

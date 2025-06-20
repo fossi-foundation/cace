@@ -45,7 +45,7 @@ def get_pdk_root():
     """
     Get a value for PDK_ROOT, either from an environment variable, or
     from several standard locations (open_pdks install and IIC-tools
-    install and volare install).
+    install and ciel/volare install).
     If found, set the environment variable PDK_ROOT.
     """
 
@@ -59,9 +59,11 @@ def get_pdk_root():
             if not os.path.isdir(pdk_root):
                 pdk_root = '/foss/pdks'
                 if not os.path.isdir(pdk_root):
-                    pdk_root = os.path.join(os.path.expanduser('~'), '.volare')
+                    pdk_root = os.path.join(os.path.expanduser('~'), '.ciel')
                     if not os.path.isdir(pdk_root):
-                        pdk_root = None
+                        pdk_root = os.path.join(os.path.expanduser('~'), '.volare')
+                        if not os.path.isdir(pdk_root):
+                            pdk_root = None
 
         if pdk_root:
             os.environ['PDK_ROOT'] = pdk_root

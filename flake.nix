@@ -1,3 +1,4 @@
+# Copyright 2025 CACE Contributors
 # Copyright 2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,29 +15,20 @@
 {
   description = "open-source framework for automatic circuit characterization";
 
-  nixConfig = {
-    extra-substituters = [
-      "https://openlane.cachix.org"
-    ];
-    extra-trusted-public-keys = [
-      "openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E="
-    ];
-  };
-
   inputs = {
-    nix-eda.url = github:efabless/nix-eda;
-    volare.url = github:efabless/volare;
-    devshell.url = github:numtide/devshell;
+    nix-eda.url = "github:fossi-foundation/nix-eda";
+    ciel.url = "github:fossi-foundation/ciel";
+    devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
   };
 
-  inputs.volare.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
+  inputs.ciel.inputs.nix-eda.follows = "nix-eda";
   inputs.devshell.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
 
   outputs = {
     self,
     nix-eda,
-    volare,
+    ciel,
     devshell,
     ...
   }: let
@@ -47,7 +39,7 @@
     overlays = {
       default = lib.composeManyExtensions [
         (import ./nix/overlay.nix)
-        (nix-eda.flakesToOverlay [volare])
+        (nix-eda.flakesToOverlay [ciel])
         (
           pkgs': pkgs: let
             callPackage = lib.callPackageWith pkgs';

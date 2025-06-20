@@ -30,21 +30,21 @@ jobs:
       - name: Cache sky130 PDK
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}/.volare-sky130
+          path: ${{ github.workspace }}/.ciel-sky130
           key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
       - name: Enable sky130 PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          volare enable --pdk sky130 --pdk-root ${{ github.workspace }}/.volare-sky130 ${{ steps.set-rev.outputs.opdks_rev }}
+          ciel enable --pdk-family sky130 --pdk-root ${{ github.workspace }}/.ciel-sky130 ${{ steps.set-rev.outputs.opdks_rev }}
       - name: Cache gf180mcu PDK
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}/.volare-gf180mcu
+          path: ${{ github.workspace }}/.ciel-gf180mcu
           key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.opdks_rev }}
       - name: Enable gf180mcu PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          volare enable --pdk gf180mcu --pdk-root ${{ github.workspace }}/.volare-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
+          ciel enable --pdk-family gf180mcu --pdk-root ${{ github.workspace }}/.ciel-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
       - name: Checkout submodules
         uses: actions/checkout@v3
         with:
@@ -83,14 +83,14 @@ jobs:
         id: cache-sky130-pdk
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}/.volare-sky130
+          path: ${{ github.workspace }}/.ciel-sky130
           key: cache-sky130-pdk-${{ needs.prepare-pdks.outputs.opdks_rev }}
       - name: Enable sky130 PDK
         if: steps.cache-sky130-pdk.outputs.cache-hit != 'true'
         run: |
           pip3 install -r ./requirements.txt
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          volare enable --pdk sky130 --pdk-root ${{ github.workspace }}/.volare-sky130 ${{ needs.prepare-pdks.outputs.opdks_rev }}
+          ciel enable --pdk-family sky130 --pdk-root ${{ github.workspace }}/.ciel-sky130 ${{ needs.prepare-pdks.outputs.opdks_rev }}
       - name: Run Unit Tests
         run: echo TODO
   build-linux-amd64:
@@ -273,13 +273,13 @@ jobs:
         id: cache-pdks
         uses: actions/cache@v3
         with:
-          path: ${{ github.workspace }}/.volare-${{ matrix.pdk_family }}
+          path: ${{ github.workspace }}/.ciel-${{ matrix.pdk_family }}
           key: cache-${{ matrix.pdk_family }}-pdk-${{ needs.prepare-pdks.outputs.opdks_rev }}
 
       - name: Enable PDKs
         if: steps.cache-pdks.outputs.cache-hit != 'true'
         run: |
           pip3 install -r ./requirements.txt
-          volare enable --pdk ${{ matrix.pdk_family }} \
-            --pdk-root ${{ github.workspace }}/.volare-${{ matrix.pdk_family }} \
+          ciel enable --pdk-family ${{ matrix.pdk_family }} \
+            --pdk-root ${{ github.workspace }}/.ciel-${{ matrix.pdk_family }} \
             ${{ needs.prepare-pdks.outputs.opdks_rev }}
