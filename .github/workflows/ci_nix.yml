@@ -6,9 +6,6 @@ on:
   push:
   # Runs on all PRs
   pull_request:
-  # Runs every day at midnight UTC
-  schedule:
-    - cron: "0 0 * * *"
   # Manual Dispatch
   workflow_dispatch:
 
