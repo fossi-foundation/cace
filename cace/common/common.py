@@ -61,7 +61,9 @@ def get_pdk_root():
                 if not os.path.isdir(pdk_root):
                     pdk_root = os.path.join(os.path.expanduser('~'), '.ciel')
                     if not os.path.isdir(pdk_root):
-                        pdk_root = os.path.join(os.path.expanduser('~'), '.volare')
+                        pdk_root = os.path.join(
+                            os.path.expanduser('~'), '.volare'
+                        )
                         if not os.path.isdir(pdk_root):
                             pdk_root = None
 
