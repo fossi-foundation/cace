@@ -1,3 +1,12 @@
+# 2.6.0
+
+## Common
+
+- Update references from Efabless to FOSSi Foundation
+- Use the FOSSi Foundation Nix cache
+- Replace volare with [ciel](https://github.com/fossi-foundation/ciel)
+- Add `AUTHORS.md`
+
 # 2.5.5
 
 ## Common
