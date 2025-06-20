@@ -25,7 +25,7 @@ jobs:
         run: |
           echo "opdks_rev=$(cat ./cace/open_pdks_rev)" >> $GITHUB_OUTPUT
       - name: Cache sky130 PDK
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.ciel-sky130
           key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
@@ -34,7 +34,7 @@ jobs:
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           ciel enable --pdk-family sky130 --pdk-root ${{ github.workspace }}/.ciel-sky130 ${{ steps.set-rev.outputs.opdks_rev }}
       - name: Cache gf180mcu PDK
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.ciel-gf180mcu
           key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.opdks_rev }}
@@ -78,7 +78,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Cache sky130 PDK
         id: cache-sky130-pdk
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.ciel-sky130
           key: cache-sky130-pdk-${{ needs.prepare-pdks.outputs.opdks_rev }}
@@ -90,144 +90,90 @@ jobs:
           ciel enable --pdk-family sky130 --pdk-root ${{ github.workspace }}/.ciel-sky130 ${{ needs.prepare-pdks.outputs.opdks_rev }}
       - name: Run Unit Tests
         run: echo TODO
-  build-linux-amd64:
+  build-linux-x86_64:
     needs: lint
     runs-on: ubuntu-22.04
-    name: Build (Nix on Linux/amd64)
+    name: Build (Nix/x86_64-linux)
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up GITHUB_TOKEN
         run: |
           echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - name: Install Nix
-        run: |
-          sh <(curl -L https://nixos.org/nix/install) --yes --daemon --nix-extra-conf-file /dev/stdin <<EXTRA_NIX_CONF
-          extra-experimental-features = nix-command flakes
-          extra-substituters = https://openlane.cachix.org
-          extra-trusted-public-keys = openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
-          EXTRA_NIX_CONF
-
-          . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
-          echo "PATH=$PATH" >> $GITHUB_ENV
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            extra-substituters = https://${{ vars.NIX_CACHE }}
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: x86_64-linux
-          local_cache_key: derivation-${{ github.run_id }}
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
-          cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           run_tests: "true"
   build-linux-aarch64:
     needs: lint
-    runs-on: ubuntu-22.04
-    name: Build (Nix on Linux/aarch64)
+    runs-on: ubuntu-22.04-arm
+    name: Build (Nix/aarch64-linux)
     steps:
-      - uses: docker/setup-qemu-action@v1
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up GITHUB_TOKEN
         run: |
           echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - uses: DeterminateSystems/nix-installer-action@main # Using the DS Nix installer because it also sets up binfmt
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            extra-substituters = https://${{ vars.NIX_CACHE }}
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: aarch64-linux
-          local_cache_key: derivation-${{ github.run_id }}
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
-          cachix_token: "${{ secrets.CACHIX_TOKEN }}"
           run_tests: "true"
-  build-mac-amd64:
+  build-darwin:
+    strategy:
+      matrix:
+        os:
+          [
+            {
+              name: "macOS 13",
+              family: "darwin",
+              runner: "macos-13",
+              arch: "x86_64",
+              nix: "x86_64-darwin",
+            },
+            {
+              name: "macOS 14",
+              family: "darwin",
+              runner: "macos-15",
+              arch: "aarch64",
+              nix: "aarch64-darwin",
+            },
+          ]
+      fail-fast: false
     needs: lint
-    runs-on: macos-13
-    name: Build (Nix on macOS/amd64)
+    runs-on: ${{ matrix.os.runner }}
+    name: Build (Nix/${{ matrix.os.nix }})
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up GITHUB_TOKEN
         run: |
           echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - name: Install Nix
-        run: |
-          sh <(curl -L https://nixos.org/nix/install) --yes --nix-extra-conf-file /dev/stdin <<EXTRA_NIX_CONF
-          extra-experimental-features = nix-command flakes
-          extra-substituters = https://openlane.cachix.org
-          extra-trusted-public-keys = openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
-          EXTRA_NIX_CONF
-
-          . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
-          echo "PATH=$PATH" >> $GITHUB_ENV
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            extra-substituters = https://${{ vars.NIX_CACHE }}
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
-          nix_system: x86_64-darwin
-          local_cache_key: derivation-${{ github.run_id }}
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
-          cachix_token: "${{ secrets.CACHIX_TOKEN }}"
+          nix_system: ${{ matrix.os.nix }}
           shell: "zsh {0}"
           run_tests: "true"
-  build-docker:
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        arch: ["amd64", "aarch64"]
-    needs: [build-linux-amd64, build-linux-aarch64]
-    name: Build Docker Image (${{ matrix.arch }})
-    steps:
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
-        with:
-          remove-dotnet: "true"
-          remove-android: "true"
-          remove-haskell: "true"
-          remove-codeql: "true"
-          remove-docker-images: "true"
-          root-reserve-mb: 20480
-      - name: Check out repo
-        uses: actions/checkout@v3
-
-      - uses: docker/setup-qemu-action@v1
-      - name: Set Nix System
-        run: |
-          nix_system=x86_64-linux
-          if [ "${{ matrix.arch }}" == "aarch64" ]; then
-            nix_system=aarch64-linux
-          fi
-          echo "NIX_SYSTEM=$nix_system" >> $GITHUB_ENV
-      - uses: DeterminateSystems/nix-installer-action@main
-      - name: Build with Nix
-        uses: ./.github/actions/build_nix
-        with:
-          nix_system: ${{ env.NIX_SYSTEM }}
-          local_cache_key: derivation-${{ github.run_id }}
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
-
-      - name: Build Docker Image
-        run: |
-          IMAGE_PATH=$(nix build\
-            --print-out-paths\
-            --no-link\
-            --accept-flake-config\
-            --option system ${{ env.NIX_SYSTEM }}\
-            --extra-platforms ${{ env.NIX_SYSTEM }}\
-            .#packages.${{ env.NIX_SYSTEM }}.cace-docker)
-          echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
-          cat $IMAGE_PATH | docker load
-      - name: Set Up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.8"
-      - name: Install Dependencies
-        run: make dependencies
-      # Do not cache the PDK. We want to test the typical Docker flow here.
-      - name: Smoke-Test Docker Image
-        run: echo TODO
-      - name: Upload Docker Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-image-${{ matrix.arch }}
-          path: ${{ env.IMAGE_PATH }}
   test:
     runs-on: ubuntu-22.04
-    needs: [build-linux-amd64, prepare-pdks]
+    needs: [build-linux-x86_64, prepare-pdks]
     name: Test Design ${{ matrix.test_name }} (${{ matrix.pdk }})
     strategy:
       fail-fast: false
@@ -245,38 +191,39 @@ jobs:
           remove-codeql: "true"
           remove-docker-images: "true"
           root-reserve-mb: 20480
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Check if Git
         run: |
           git status || true
           tree .git || true
-
       - uses: DeterminateSystems/nix-installer-action@main
-
+        with:
+          extra-conf: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            extra-substituters = https://${{ vars.NIX_CACHE }}
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
           nix_system: x86_64-linux
-          local_cache_key: derivation-${{ github.run_id }}
-          cachix_cache: ${{ vars.CACHIX_CACHE || 'openlane' }}
-
       - name: Check Nix
         run: |
           sudo du -hs /nix/store/* | sort -h | tail -n 10
           sudo tree /nix/store/*-openlane2 || true
-      - name: Cache PDKs
-        id: cache-pdks
-        uses: actions/cache@v3
+      - name: Cache PDK
+        id: cache-pdk
+        uses: actions/cache@v4
         with:
-          path: ${{ github.workspace }}/.ciel-${{ matrix.pdk_family }}
+          path: ./.ciel-${{ matrix.pdk_family }}
           key: cache-${{ matrix.pdk_family }}-pdk-${{ needs.prepare-pdks.outputs.opdks_rev }}
-
+          enableCrossOsArchive: true
       - name: Enable PDKs
-        if: steps.cache-pdks.outputs.cache-hit != 'true'
+        if: steps.cache-pdk.outputs.cache-hit != 'true'
         run: |
           pip3 install -r ./requirements.txt
+          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           ciel enable --pdk-family ${{ matrix.pdk_family }} \
-            --pdk-root ${{ github.workspace }}/.ciel-${{ matrix.pdk_family }} \
+            --pdk-root ./.ciel-${{ matrix.pdk_family }} \
             ${{ needs.prepare-pdks.outputs.opdks_rev }}

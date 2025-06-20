@@ -27,7 +27,7 @@ To install curl on Ubuntu, simply type in the following in your terminal:
 $ sudo apt-get install -y curl
 ```
 
-After that, simply run this command (the cache is shared with openlane):
+After that, simply run this command:
 
 ```console
 $ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm --extra-conf "
