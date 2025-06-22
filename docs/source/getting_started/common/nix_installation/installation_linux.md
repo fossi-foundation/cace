@@ -14,6 +14,11 @@ If you're looking to build a virtual machine, we recommend [Ubuntu 22.04](https:
 
 ## Installing Nix
 
+```{warning}
+Do **not** install Nix using `apt`. The version of Nix offered by `apt` is more
+often than not severely out-of-date and may cause issues.
+```
+
 You will need `curl` to install Nix.
 
 To install curl on Ubuntu, simply type in the following in your terminal:
@@ -22,14 +27,13 @@ To install curl on Ubuntu, simply type in the following in your terminal:
 $ sudo apt-get install -y curl
 ```
 
-After that, simply run this command (the cache is shared with openlane):
+After that, simply run this command:
 
 ```console
-$ sh <(curl -L https://nixos.org/nix/install) --yes --daemon --nix-extra-conf-file /dev/stdin <<EXTRA_NIX_CONF
-extra-experimental-features = nix-command flakes
-extra-substituters = https://openlane.cachix.org
-extra-trusted-public-keys = openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
-EXTRA_NIX_CONF
+$ curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm --extra-conf "
+    extra-substituters = https://nix-cache.fossi-foundation.org
+    extra-trusted-public-keys = nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=
+"
 ```
 
 Enter your password if prompted. This should take around 5 minutes.

@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 from cace import __version__
 
 project = 'CACE'
-copyright = '2024, Efabless Corporation'
+copyright = '2025, CACE Contributors'
 author = 'Tim Edwards, Leo Moser'
 release = __version__
 

@@ -23,7 +23,7 @@
   klayout-gdsfactory,
   magic-vlsi,
   netgen,
-  volare,
+  ciel,
   xschem,
   ngspice,
   xyce,
@@ -91,7 +91,7 @@
         numpy
         scipy
         pillow
-        volare
+        ciel
         tkinter
         rich
       ]
@@ -106,7 +106,7 @@
 
       meta = with lib; {
         description = "Circuit Automatic Characterization Engine";
-        homepage = "https://github.com/efabless/cace";
+        homepage = "https://github.com/fossi-foundation/cace";
         mainProgram = "cace";
         license = licenses.asl20;
         platforms = platforms.linux ++ platforms.darwin;

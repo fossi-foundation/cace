@@ -6,8 +6,8 @@ dynamic = [
 ]
 requires-python = ">=3.8"
 authors = [
-  { name="Tim Edwards", email="tim@efabless.com" },
-  { name="Leo Moser", email="leo.moser@efabless.com" },
+  { name="Tim Edwards", email="tim@opencircuitdesign.com" },
+  { name="Leo Moser", email="leo.moser@pm.me" },
 ]
 description = "Circuit Automatic Characterization Engine"
 readme = "README.md"
@@ -22,8 +22,8 @@ version = {attr = "cace.__version__"}
 dependencies = {file = ["requirements.txt"]}
 
 [project.urls]
-Homepage = "https://github.com/efabless/cace"
-Issues = "https://github.com/efabless/cace/issues"
+Homepage = "https://github.com/fossi-foundation/cace"
+Issues = "https://github.com/fossi-foundation/cace/issues"
 
 [build-system]
 requires = ["setuptools>=64", "setuptools_scm>=7"]
