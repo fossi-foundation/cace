@@ -497,6 +497,22 @@ class ParameterNgspice(Parameter):
                         spiceinit_path = os.path.join(
                             pdk_root, pdk, 'libs.tech', 'ngspice', 'spiceinit'
                         )
+                        if not os.path.isfile(spiceinit_path):
+                            spiceinit_path = os.path.join(
+                                pdk_root,
+                                pdk,
+                                'libs.tech',
+                                'ngspice',
+                                '.spiceinit',
+                            )
+                            if not os.path.isfile(spiceinit_path):
+                                spiceinit_path = os.path.join(
+                                    pdk_root,
+                                    pdk,
+                                    'libs.tech',
+                                    'ngspice',
+                                    'spinit',
+                                )
 
                     if os.path.isfile(spiceinit_path):
                         # Copy spiceinit file to run dir
@@ -504,7 +520,7 @@ class ParameterNgspice(Parameter):
                             spiceinit_path, os.path.join(outpath, '.spiceinit')
                         )
                     else:
-                        err(f'No "spiceinit" file found in the {pdk} PDK.')
+                        warn(f'No "spiceinit" file found in the {pdk} PDK.')
 
         # We directly got a spice netlist,
         # perform the substitutions on it
