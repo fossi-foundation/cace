@@ -1,5 +1,18 @@
+# 2.8.0
+
+## Common
+
+- Add `klayout_lvs` tool:
+  - Run LVS with KLayout 
+- magic: flatten via/guard_ring PCells
+- Add initial support for ihp-sg13g2
+    * KLayout DRC
+    * magic DRC
+    * netgen LVS
 
 # 2.7.0
+
+## Common
 
 - `ngspice` tool:
   - Add `jobs` argument

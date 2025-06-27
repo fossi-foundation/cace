@@ -355,8 +355,12 @@ def regenerate_netlist(datasheet, netlist_source, runtime_options, pex=False):
             magic_input += f'path search +{os.path.abspath(os.path.dirname(layout_filepath))}\n'
             magic_input += f'load {os.path.basename(layout_filepath)}\n'
         else:
+            # sky130
             magic_input += 'gds flatglob guard_ring_gen*\n'
             magic_input += 'gds flatglob vias_gen*\n'
+            # ihp-sg13g2
+            magic_input += 'gds flatglob via_stack*\n'
+
             magic_input += f'gds read {layout_filepath}\n'
             magic_input += f'load {dname}\n'
             # Use readspice to get the port order

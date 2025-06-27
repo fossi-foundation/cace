@@ -113,14 +113,26 @@ class ParameterKLayoutLVS(Parameter):
                     os.path.join(scriptspath, self.get_argument('script'))
                 )
             else:
-                lvs_script_path = os.path.join(
-                    get_pdk_root(),
-                    self.datasheet['PDK'],
-                    'libs.tech',
-                    'klayout',
-                    'lvs',
-                    'sky130.lvs',
-                )
+                # PDK specific arguments
+                if self.datasheet['PDK'].startswith('sky130'):
+                    lvs_script_path = os.path.join(
+                        get_pdk_root(),
+                        self.datasheet['PDK'],
+                        'libs.tech',
+                        'klayout',
+                        'lvs',
+                        'sky130.lvs',
+                    )
+                if self.datasheet['PDK'].startswith('ihp-sg13g2'):
+                    lvs_script_path = os.path.join(
+                        get_pdk_root(),
+                        self.datasheet['PDK'],
+                        'libs.tech',
+                        'klayout',
+                        'tech',
+                        'lvs',
+                        'sg13g2.lvs',
+                    )
 
             if not os.path.exists(lvs_script_path):
                 err(f'LVS script {lvs_script_path} does not exist!')
@@ -146,11 +158,27 @@ class ParameterKLayoutLVS(Parameter):
                     '-rd',
                     f'report={report_file_path}',
                     '-rd',
+                    f'target_netlist={os.path.abspath(os.path.join(self.param_dir, projname + ".cir"))}',
+                    '-rd',
+                    f'thr={os.cpu_count()}',
+                ]
+            if self.datasheet['PDK'].startswith('ihp-sg13g2'):
+                arguments = [
+                    '-b',
+                    '-r',
+                    lvs_script_path,
+                    '-rd',
+                    f'input={os.path.abspath(layout_filepath)}',
+                    '-rd',
+                    f'topcell={projname}',
+                    '-rd',
+                    f'schematic={schem_netlist}',
+                    '-rd',
                     f'report={report_file_path}',
                     '-rd',
                     f'target_netlist={os.path.abspath(os.path.join(self.param_dir, projname + ".cir"))}',
                     '-rd',
-                    f'thr={os.cpu_count()}',  # TODO how to distribute cores?
+                    f'thr={os.cpu_count()}',
                 ]
 
             returncode = self.run_subprocess(

@@ -110,8 +110,11 @@ class ParameterMagicAntennaCheck(Parameter):
                 if self.get_argument('gds_flatten'):
                     magic_input += 'gds flatglob *\n'
                 else:
+                    # sky130
                     magic_input += 'gds flatglob guard_ring_gen*\n'
                     magic_input += 'gds flatglob vias_gen*\n'
+                    # ihp-sg13g2
+                    magic_input += 'gds flatglob via_stack*\n'
                 magic_input += f'gds read {os.path.abspath(layout_filepath)}\n'
                 magic_input += f'load {projname}\n'
 

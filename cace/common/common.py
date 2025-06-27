@@ -191,6 +191,12 @@ def get_klayout_layer_props():
     techfile = os.path.join(
         pdk_root, pdk, 'libs.tech', 'klayout', 'tech', pdk + '.lyp'
     )
+    # Why oh why ihp-sg13g2
+    if not os.path.isfile(techfile):
+        techfile = os.path.join(
+            pdk_root, pdk, 'libs.tech', 'klayout', 'tech', 'sg13g2.lyp'
+        )
+    
 
     return techfile
 

@@ -99,14 +99,25 @@ class ParameterKLayoutDRC(Parameter):
         drc_script_path = self.get_argument('drc_script_path')
 
         if drc_script_path == None:
-            drc_script_path = os.path.join(
-                get_pdk_root(),
-                self.datasheet['PDK'],
-                'libs.tech',
-                'klayout',
-                'drc',
-                f'{self.datasheet["PDK"]}_mr.drc',
-            )
+            if self.datasheet['PDK'].startswith('sky130'):
+                drc_script_path = os.path.join(
+                    get_pdk_root(),
+                    self.datasheet['PDK'],
+                    'libs.tech',
+                    'klayout',
+                    'drc',
+                    f'{self.datasheet["PDK"]}_mr.drc',
+                )
+            if self.datasheet['PDK'].startswith('ihp-sg13g2'):
+                drc_script_path = os.path.join(
+                    get_pdk_root(),
+                    self.datasheet['PDK'],
+                    'libs.tech',
+                    'klayout',
+                    'tech',
+                    'drc',
+                    'sg13g2_maximal.lydrc',
+                )
 
         if not os.path.exists(drc_script_path):
             err(f'DRC script {drc_script_path} does not exist!')
@@ -131,7 +142,21 @@ class ParameterKLayoutDRC(Parameter):
                 '-rd',
                 f'report={report_file_path}',
                 '-rd',
-                f'thr={os.cpu_count()}',  # TODO how to distribute cores?
+                f'thr={os.cpu_count()}',
+            ]
+        if self.datasheet['PDK'].startswith('ihp-sg13g2'):
+            arguments = [
+                '-b',
+                '-r',
+                drc_script_path,
+                '-rd',
+                f'in_gds={os.path.abspath(layout_filepath)}',
+                '-rd',
+                f'cell={projname}',
+                '-rd',
+                f'report_file={report_file_path}',
+                '-rd',
+                f'threads={os.cpu_count()}',
             ]
 
         returncode = self.run_subprocess(
