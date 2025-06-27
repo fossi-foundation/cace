@@ -196,7 +196,6 @@ def get_klayout_layer_props():
         techfile = os.path.join(
             pdk_root, pdk, 'libs.tech', 'klayout', 'tech', 'sg13g2.lyp'
         )
-    
 
     return techfile
 

@@ -499,11 +499,19 @@ class ParameterNgspice(Parameter):
                         )
                         if not os.path.isfile(spiceinit_path):
                             spiceinit_path = os.path.join(
-                                pdk_root, pdk, 'libs.tech', 'ngspice', '.spiceinit'
+                                pdk_root,
+                                pdk,
+                                'libs.tech',
+                                'ngspice',
+                                '.spiceinit',
                             )
                             if not os.path.isfile(spiceinit_path):
                                 spiceinit_path = os.path.join(
-                                    pdk_root, pdk, 'libs.tech', 'ngspice', 'spinit'
+                                    pdk_root,
+                                    pdk,
+                                    'libs.tech',
+                                    'ngspice',
+                                    'spinit',
                                 )
 
                     if os.path.isfile(spiceinit_path):
