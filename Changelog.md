@@ -1,3 +1,9 @@
+# 2.8.1
+
+## Dependencies
+
+- Update rich to 14.0.0
+
 # 2.8.0
 
 ## Common
