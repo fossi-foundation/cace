@@ -1,3 +1,9 @@
+# 2.8.2
+
+## Common
+
+- Fix the `--sequential` option
+
 # 2.8.1
 
 ## Dependencies

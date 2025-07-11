@@ -568,6 +568,7 @@ class ParameterNgspice(Parameter):
                         outpath,
                         os.path.splitext(template)[0] + '.spice',
                         self.jobs_sem,
+                        jobs,
                         self.step_cb,
                     )
                     self.add_simulation_job(new_sim_job)
