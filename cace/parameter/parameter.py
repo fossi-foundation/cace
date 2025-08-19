@@ -150,24 +150,24 @@ class Condition:
             if self.spec['step'] == 'linear':
                 stepsize = 1
                 if 'stepsize' in self.spec:
-                    stepsize = self.spec['stepsize']
+                    stepsize = float(self.spec['stepsize'])
 
                 yield from linseq(
-                    int(self.spec['minimum']),
-                    int(self.spec['maximum']),
-                    int(stepsize),
+                    float(self.spec['minimum']),
+                    float(self.spec['maximum']),
+                    stepsize,
                 )
 
             # Logarithmic step
             elif self.spec['step'] == 'logarithmic':
                 stepsize = 2
                 if 'stepsize' in self.spec:
-                    stepsize = self.spec['stepsize']
+                    stepsize = float(self.spec['stepsize'])
 
                 yield from logseq(
-                    int(self.spec['minimum']),
-                    int(self.spec['maximum']),
-                    int(stepsize),
+                    float(self.spec['minimum']),
+                    float(self.spec['maximum']),
+                    stepsize,
                 )
 
             else:
