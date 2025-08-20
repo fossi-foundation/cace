@@ -1,3 +1,9 @@
+# 2.8.3
+
+## Common
+
+- Fix `linseq` and `logseq` only working for integers
+
 # 2.8.2
 
 ## Common
