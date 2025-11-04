@@ -38,6 +38,7 @@ python3 -m pip install --upgrade cace
 
 ## Usage
 
+### CLI:
 To invoke the CLI:
 
 ```console
@@ -45,6 +46,16 @@ cace [datasheet] [output] [options]
 ```
 
 For more information about the usage of CACE please have a look at ["Usage Guides"](https://cace.readthedocs.io/en/latest/usage_guides/index.html) in the documentation.
+
+### Web:
+To start the web server:
+```console
+cace_web [options]
+```
+
+To enable the debug mode, add the ```--debug``` option.
+
+Then, access the web interface at [http://localhost:5000](http://localhost:5000).
 
 ## Examples
 

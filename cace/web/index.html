@@ -2,21 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="static/css/style.css"/>
-    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/style.css" />
+    <link rel="stylesheet" href="static/css/bootstrap.min.css" />
     <script src="static/js/d3.v5.min.js"></script>
     <script src="static/js/mpld3.v0.5.10.min.js"></script>
     <script src="static/js/bootstrap.bundle.min.js"></script>
+    <title>CACE Web Interface</title>
   </head>
   <body>
     <div class="topnav">
       <button type="button" class="btn btn-primary" onclick="window.location.href=window.location.origin">Home</button>
-      <button type="button" class="btn btn-link" onclick="openTab(event, 'Select')" id="SelectTab">Select</button>
-      <button type="button" class="btn btn-link" onclick="openTab(event, 'Progress')" id="ProgressTab" disabled>Progress</button>
-      <button type="button" class="btn btn-link" onclick="openTab(event, 'Results')" id="ResultsTab" disabled>Results</button>
+      <button type="button" class="btn btn-secondary" onclick="openTab(event, 'Select')" id="SelectTab">Select</button>
+      <button type="button" class="btn btn-secondary" onclick="openTab(event, 'Progress')" id="ProgressTab" disabled>Progress</button>
+      <button type="button" class="btn btn-secondary" onclick="openTab(event, 'Results')" id="ResultsTab" disabled>Results</button>
+      <button type="button" class="btn btn-secondary right-align" onclick="openTab(event, 'History')" id="HistoryTab">Run history</button>
     </div>
 
-    <br>
+    <br />
 
     <div id="Select" class="tabcontent">
       <form id="sim_select">
@@ -39,61 +41,63 @@
           </tbody>
         </table>
       </form>
-      <br>
+      <br />
       <details>
         <summary>Edit Run Settings</summary>
-        <br>
+        <br />
         <table id="settings_table">
           <tbody>
-          <tr>
-            <td><label for="max_runs">max_runs</label></td>
-            <td><input id="max_runs" type="number" /></td>
-          </tr>
-          <tr>
-            <td><label for="run_path">run_path</label></td>
-            <td><input id="run_path" type="text" /></td>
-          </tr>
-          <tr>
-            <td><label for="jobs">jobs</label></td>
-            <td><input id="jobs" type="number" /></td>
-          </tr>
-          <tr>
-            <td><label for="force">force</label></td>
-            <td><input id="force" type="checkbox" /></td>
-          </tr>
-          <tr>
-            <td><label for="noplot">noplot</label></td>
-            <td><input id="noplot" type="checkbox" /></td>
-          </tr>
-          <tr>
+            <tr>
+              <td><label for="max_runs">max_runs</label></td>
+              <td><input id="max_runs" type="number" /></td>
+            </tr>
+            <tr>
+              <td><label for="run_path">run_path</label></td>
+              <td><input id="run_path" type="text" /></td>
+            </tr>
+            <tr>
+              <td><label for="jobs">jobs</label></td>
+              <td><input id="jobs" type="number" /></td>
+            </tr>
+            <tr>
+              <td><label for="force">force</label></td>
+              <td><input id="force" type="checkbox" /></td>
+            </tr>
+            <tr>
+              <td><label for="noplot">noplot</label></td>
+              <td><input id="noplot" type="checkbox" /></td>
+            </tr>
+            <tr>
               <td><label for="nosim">nosim</label></td>
               <td><input id="nosim" type="checkbox" /></td>
-          </tr>
-          <tr>
-            <td><label for="sequential">sequential</label></td>
-            <td><input id="sequential" type="checkbox" /></td>
-          </tr>
-          <tr>
-            <td><label for="netlist_sources">netlist_source</label></td>
-            <td>
-              <select id="netlist_source" name="netlist_sources">
-                <option></option>
-                <option value="schematic">schematic</option>
-                <option value="layout">layout</option>
-                <option value="pex">pex</option>
-                <option value="rcx">rcx</option>
-                <option value="best">best</option>
-              </select>
-            </td>
-          </tr>
-          <tr>
-            <td><label for="parallel_parameters">parallel_parameters</label></td>
-            <td><input id="parallel_parameters" type="number"></td>
-          </tr>
+            </tr>
+            <tr>
+              <td><label for="sequential">sequential</label></td>
+              <td><input id="sequential" type="checkbox" /></td>
+            </tr>
+            <tr>
+              <td><label for="netlist_sources">netlist_source</label></td>
+              <td>
+                <select id="netlist_source" name="netlist_sources">
+                  <option></option>
+                  <option value="schematic">schematic</option>
+                  <option value="layout">layout</option>
+                  <option value="pex">pex</option>
+                  <option value="rcx">rcx</option>
+                  <option value="best">best</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="parallel_parameters">parallel_parameters</label>
+              </td>
+              <td><input id="parallel_parameters" type="number" /></td>
+            </tr>
           </tbody>
         </table>
       </details>
-      <br>
+      <br />
       <button type="button" class="btn btn-secondary" id="runSelected" onclick="runSimulations(all=false)" disabled>Run Selected</button>
       <button type="button" class="btn btn-success" id="runAll" onclick="runSimulations(all=true)">Run All</button>
     </div>
@@ -102,144 +106,375 @@
 
     <div id="Results" class="tabcontent"></div>
 
+    <div id="History" class="tabcontent">
+      <button type="button" class="btn btn-secondary" onclick="refresh_history()">Refresh</button>
+      <br />
+      <br />
+      <div id="comp_holder" class="comp_parent">
+        <div id="compare_left" class="comp_holder">
+          {% for i in range(runs|length) %}
+          <details id="{{ runs[i] }}_details">
+            <summary>{{ runs[i] }}</summary>
+            <div class="comp_btn_holder" id="{{ runs[i] }}_compare_holder">
+              <button type="button" class="btn btn-primary right-align" onclick="compare('{{ runs[i] }}')">Compare</button>
+            </div>
+            <div class="small_table">{{ results[i] | safe }}</div>
+          </details>
+          {% endfor %}
+          <br />
+        </div>
+      </div>
+    </div>
+
     <script>
+      // Switches which tab is visible, used by the buttons on the header
       function openTab(evt, tabName) {
         var i, tabcontent, tablinks;
         tabcontent = document.getElementsByClassName("tabcontent");
+
+        // Disable all tabs
         for (i = 0; i < tabcontent.length; i++) {
           tabcontent[i].style.display = "none";
         }
+
         tablinks = document.getElementsByClassName("tablinks");
+
+        // Deactivate all tab buttons
         for (i = 0; i < tablinks.length; i++) {
           tablinks[i].className = tablinks[i].className.replace(" active", "");
         }
+
+        // Display the selected tab
         document.getElementById(tabName).style.display = "block";
         evt.currentTarget.className += " active";
       }
-      document.getElementById("SelectTab").click();
 
-      const select_form = document.getElementById('sim_select');
-      const checkboxes = select_form.querySelectorAll('input[type="checkbox"]');
-      const submitButton = document.getElementById('runSelected');
-
-      select_form.addEventListener('change', (e) => {
-        if (e.target.type === 'checkbox') {
-          const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
-          submitButton.disabled = !anyChecked;
-        }
-      });
-
-      const eventSource = new EventSource("/stream");
-
-      eventSource.onmessage = function (event) {
-        let data = JSON.parse(event.data);
-        console.log("received");
-        console.log(data);
-        let task = data.task;
-        if (task == "close") {
-          eventSource.close();
-        } else if (task == "start") {
-          let outputDiv = document.getElementById(data.param);
-          outputDiv.max = data.steps;
-        } else if (task == "step") {
-          let outputDiv = document.getElementById(data.param);
-          outputDiv.value++;
-        } else if (task == "cancel") {
-          document.getElementById(data.param + "cancelbtn").disabled = true;
-        } else if (task == "end") {
-          let outputDiv = document.getElementById("overall_pb");
-          outputDiv.value++;
-
-          if (outputDiv.value == outputDiv.max) {
-            sendData({ "task": "fetchresults" });
-          }
-
-          document.getElementById(data.param + "cancelbtn").disabled = true;
-        } else if (task == "progress") {
-          document.getElementById("ProgressTab").disabled = false;
-          document.getElementById("ProgressTab").click();
-          document.getElementById("Progress").innerHTML = data.html;
-        } else if (task == "results") {
-          const contentDiv = document.getElementById("Results");
-          contentDiv.innerHTML = data.summary;
-          contentDiv.innerHTML += data.plots;
-
-          document.getElementById("Progress").innerHTML += data.summary;
-          const scripts = contentDiv.getElementsByTagName("script");
-          for (let script of scripts) {
-            eval(script.innerHTML);
-          }
-
-          document.getElementById("simresultsbtn").disabled = false;
-          document.getElementById("ResultsTab").disabled = false;
-          document.getElementById("cancelbtn").disabled = true;
-        }
-      };
-
-      window.onbeforeunload = function () {
-        sendData({ "task": "end_stream" });
-      };
-
-      function sendData(jsonData) {
+      // Sends provided data to a specific endpoint
+      async function sendData(endpoint, data) {
+        // Debugging print statements
         console.log("sending");
-        console.log(jsonData);
-        if (jsonData.task == "cancel_sims") {
-          document.getElementById("cancelbtn").disabled = true;
-        }
+        console.log(data);
 
-        fetch("/receive_data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(jsonData)
-        })
-        .then(response => {
-          if (response.status === 200) {
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            return await response.json();
           } else {
             console.log("Error: Received status code", response.status);
+            throw new Error(`HTTP ${response.status}`);
           }
-        })
-        .catch(error => {
-          console.error("Error:", error);
-        });
+        } catch (error) {
+          console.error("Error sending data:", error);
+          throw error;
+        }
       }
 
-      eventSource.onerror = function () {
-        console.error("Error occurred while receiving SSE.");
-      };
+      // Cancels all simulations
+      async function cancel_sims() {
+        document.getElementById("cancelbtn").disabled = true;
+        try {
+          const result = await sendData("/cancel_sims", {});
+          console.log(result.success);
+        } catch (error) {
+          console.error("Failed");
+        }
+      }
 
-      function runSimulations(all=false) {
+      // Cancels a specific simulation
+      async function cancel_sim(param) {
+        try {
+          const result = await sendData("/cancel_sim", { param: param });
+          console.log(result.success);
+        } catch (error) {
+          console.error("Failed");
+        }
+      }
+
+      // Fetches simulation results
+      async function fetch_results() {
+        try {
+          const result = await sendData("/fetch_results", {});
+          console.log(result.success);
+        } catch (error) {
+          console.error("Failed");
+        }
+      }
+
+      // Fetches latest run history and result summaries
+      async function refresh_history() {
+        try {
+          const result = await sendData("/refresh_history", {});
+          console.log(result.success);
+        } catch (error) {
+          console.error("Failed");
+        }
+      }
+
+      // Command to end SSE stream
+      async function end_stream() {
+        try {
+          const result = await sendData("/end_stream", {});
+          console.log(result.success);
+        } catch (error) {
+          console.error("Failed");
+        }
+      }
+
+      // Runs all simulations
+      function runSimulations(all = false) {
         let table = document.getElementById("select_table");
         let selected_params = [];
+
+        // Collect all selected simulations to run
         for (let i = 1; i < table.rows.length; i++) {
           let row = table.rows[i];
+
           if (row.cells[0].firstElementChild.checked && !all) {
             selected_params.push(row.cells[0].firstElementChild.getAttribute("value"));
           } else if (all) {
             selected_params.push(row.cells[0].firstElementChild.getAttribute("value"));
           }
         }
+
+        // Call the endpoint, provide run configuration and selected simulations
         if (selected_params.length > 0) {
           document.getElementById("runAll").disabled = true;
           document.getElementById("runSelected").disabled = true;
 
-          fetch(`${window.location.origin}/runsim`, {
-            method: "POST",
-            body: JSON.stringify({"selected_params": selected_params,
-                                  "max_runs": document.getElementById("max_runs").value,
-                                  "run_path": document.getElementById("run_path").value,
-                                  "jobs": document.getElementById("jobs").value,
-                                  "force": document.getElementById("force").checked,
-                                  "noplot": document.getElementById("noplot").checked,
-                                  "nosim": document.getElementById("nosim").checked,
-                                  "sequential": document.getElementById("sequential").checked,
-                                  "netlist_source": document.getElementById("netlist_source").value,
-                                  "parallel_parameters": document.getElementById("parallel_parameters").value
-            }),
+          sendData("/runsim", {
+            selected_params: selected_params,
+            max_runs: document.getElementById("max_runs").value,
+            run_path: document.getElementById("run_path").value,
+            jobs: document.getElementById("jobs").value,
+            force: document.getElementById("force").checked,
+            noplot: document.getElementById("noplot").checked,
+            nosim: document.getElementById("nosim").checked,
+            sequential: document.getElementById("sequential").checked,
+            netlist_source: document.getElementById("netlist_source").value,
+            parallel_parameters: document.getElementById("parallel_parameters").value,
           });
         }
       }
+
+      // Logic for selecting and comparing two runs
+      function compare(run_name) {
+        // Has the first run been selected?
+        right_created = document.getElementById("compare_right") != null;
+
+        if (right_created) {
+          // Remove the "compare" button from the selected run
+          document.getElementById(run_name + "_compare_holder").remove();
+
+          // Get all run entries from the right pane
+          const comp_right = document.getElementById("compare_right");
+          let cright_details = comp_right.getElementsByTagName("details");
+
+          // Collect all run entries that don't match the selected one
+          let right_del = [];
+          for (let i = 0; i < cright_details.length; i++) {
+            let detail = cright_details[i];
+            if (detail.id != run_name + "_details") {
+              right_del.push("#" + detail.id);
+            }
+          }
+
+          // Delete those collected entries
+          for (let i = 0; i < right_del.length; i++) {
+            comp_right.querySelector(right_del[i]).remove();
+          }
+        } else {
+          // Remove the "compare" button from the selected run
+          document.getElementById(run_name + "_compare_holder").remove();
+
+          // Duplicate the left pane
+          const comp_left = document.getElementById("compare_left");
+          const comp_right = comp_left.cloneNode(true);
+          comp_right.id = "compare_right";
+
+
+          // Select everything but the selected entry in the left pane
+          let cleft_details = comp_left.getElementsByTagName("details");
+          let left_del = [];
+
+          for (let i = 0; i < cleft_details.length; i++) {
+            let detail = cleft_details[i];
+            if (detail.id != run_name + "_details") {
+              left_del.push("#" + detail.id);
+            }
+          }
+
+          // Delete the collected entries
+          for (let i = 0; i < left_del.length; i++) {
+            comp_left.querySelector(left_del[i]).remove();
+          }
+
+          // Select the selcted entry
+          let cright_details = comp_right.getElementsByTagName("details");
+          let right_del = [];
+
+          for (let i = 0; i < cright_details.length; i++) {
+            cright_details[i].open = false;
+            let detail = cright_details[i];
+            if (detail.id == run_name + "_details") {
+              right_del.push("#" + detail.id);
+            }
+          }
+
+          // Delete the selected entry
+          for (let i = 0; i < right_del.length; i++) {
+            comp_right.querySelector(right_del[i]).remove();
+          }
+
+          // Insert the right pane. NOTE: We do this last to make sure element IDs are not doubled
+          document.getElementById("comp_holder").appendChild(comp_right);
+        }
+      }
+
+      // Start on the select tab
+      document.getElementById("SelectTab").click();
+
+      // The table which lists all simulations to run
+      const select_form = document.getElementById("sim_select");
+      // All checkboxes in that table
+      const checkboxes = select_form.querySelectorAll("input[type='checkbox']");
+      // The button to run all selected simulations
+      const submitButton = document.getElementById("runSelected");
+
+      // Listens for changes to the selected simulations. Enables the "Run Selected" button if any of the simulations are selected
+      select_form.addEventListener("change", (e) => {
+        if (e.target.type === "checkbox") {
+          const anyChecked = Array.from(checkboxes).some((checkbox) => checkbox.checked);
+          submitButton.disabled = !anyChecked;
+        }
+      });
+
+      // Starts a new SSE (Server Side Event) stream
+      const eventSource = new EventSource("/stream");
+
+      // Message from the server to close the SSE stream
+      function close(task, data) {
+        eventSource.close();
+      }
+
+      // Callback from the server to start a progress bar
+      function start(task, data) {
+        let outputDiv = document.getElementById(data.param);
+        outputDiv.max = data.steps;
+      }
+
+      // Callback from the server to increment the progress bar by one
+      function step(task, data) {
+        let outputDiv = document.getElementById(data.param);
+        outputDiv.value++;
+      }
+
+      // Callback from the server when a simulation has been canceled
+      function cancel(task, data) {
+        document.getElementById(data.param + "cancelbtn").disabled = true;
+      }
+
+      // Callback from the server as soon as a simulation has finished
+      function end(task, data) {
+        let outputDiv = document.getElementById("overall_pb");
+        outputDiv.value++;
+
+        if (outputDiv.value == outputDiv.max) {
+          fetch_results();
+        }
+
+        document.getElementById(data.param + "cancelbtn").disabled = true;
+      }
+
+      // Didplays the progress tab
+      function progress(task, data) {
+        document.getElementById("ProgressTab").disabled = false;
+        document.getElementById("ProgressTab").click();
+        document.getElementById("Progress").innerHTML = data.html;
+      }
+
+      // Displays the results tab content
+      function results(task, data) {
+        const contentDiv = document.getElementById("Results");
+        contentDiv.innerHTML = data.summary;
+        contentDiv.innerHTML += data.plots;
+
+        document.getElementById("Progress").innerHTML += data.summary;
+        
+        // We have to run the JS code for the mpld3 plots to make them appear
+        const scripts = contentDiv.getElementsByTagName("script");
+        for (let script of scripts) {
+          eval(script.innerHTML);
+        }
+
+        document.getElementById("simresultsbtn").disabled = false;
+        document.getElementById("ResultsTab").disabled = false;
+        document.getElementById("cancelbtn").disabled = true;
+      }
+
+      // Displays the new run history tab content, this is only called after a refresh
+      function history(task, data) {
+        document.getElementById("History").innerHTML = data.html;
+      }
+
+      // Handler for incoming messages
+      eventSource.onmessage = function (event) {
+        let data = JSON.parse(event.data);
+        let task = data.task;
+
+        console.log("received");
+        console.log(data);
+
+        switch (task) {
+          case "close":
+            close(task, data);
+            break;
+
+          case "start":
+            start(task, data);
+            break;
+
+          case "step":
+            step(task, data);
+            break;
+
+          case "cancel":
+            cancel(task, data);
+            break;
+
+          case "end":
+            end(task, data);
+            break;
+
+          case "progress":
+            progress(task, data);
+            break;
+
+          case "results":
+            results(task, data);
+            break;
+
+          case "history":
+            history(task, data);
+            break;
+        }
+      };
+
+      // Callback for errors that occur when handling incoming messages
+      eventSource.onerror = function () {
+        console.error("Error occurred while receiving SSE.");
+      };
+
+      // Sends command to server to close SSE stream when closing the tab
+      window.onbeforeunload = function () {
+        end_stream();
+      };
     </script>
   </body>
 </html>

@@ -3,7 +3,8 @@ table {
   font-size: 18px;
   text-align: left;
 }
-table th, table td {
+table th,
+table td {
   padding: 10px;
   border: 1px solid #ddd;
 }
@@ -22,11 +23,28 @@ details {
   float: left;
   padding: 0px 10px;
 }
-.topnav{
+.topnav {
   padding: 10px;
   background-color: lightgray;
+  display: flex;
+  gap: 15px;
 }
 .topnav button {
-  width: 100px;
-  height: 40px
+  height: 40px;
+}
+.right-align {
+  margin-left: auto;
+}
+.comp_btn_holder {
+  display: flex;
+}
+.small_table table {
+  font-size: 12px;
+}
+.comp_holder {
+  width: 850px;
+}
+.comp_parent {
+  display: flex;
+  gap: 20px;
 }

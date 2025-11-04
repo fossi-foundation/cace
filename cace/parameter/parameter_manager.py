@@ -249,12 +249,15 @@ class ParameterManager:
         return self.datasheet
 
     def summarize_datasheet(self):
-        return markdown_summary(
-            self.datasheet,
-            self.runtime_options,
-            self.results,
-            self.result_types,
-        )
+        md_sum = markdown_summary(self.datasheet,
+                                  self.runtime_options,
+                                  self.results,
+                                  self.result_types,)
+        
+        with open(self.run_dir + "/summary.md", 'w') as f:
+            print(md_sum, file=f)
+
+        return md_sum
 
     def generate_documentation(self):
         if 'documentation' in self.datasheet['paths']:
