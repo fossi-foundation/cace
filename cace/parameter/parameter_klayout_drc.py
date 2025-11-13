@@ -116,7 +116,7 @@ class ParameterKLayoutDRC(Parameter):
                     'klayout',
                     'tech',
                     'drc',
-                    'sg13g2_maximal.lydrc',
+                    'run_drc.py',
                 )
 
         if not os.path.exists(drc_script_path):
@@ -142,28 +142,35 @@ class ParameterKLayoutDRC(Parameter):
                 '-rd',
                 f'report={report_file_path}',
                 '-rd',
-                f'thr={os.cpu_count()}',
+                f'thr={jobs}',
             ]
         if self.datasheet['PDK'].startswith('ihp-sg13g2'):
             arguments = [
-                '-b',
-                '-r',
                 drc_script_path,
-                '-rd',
-                f'in_gds={os.path.abspath(layout_filepath)}',
-                '-rd',
-                f'cell={projname}',
-                '-rd',
-                f'report_file={report_file_path}',
-                '-rd',
-                f'threads={os.cpu_count()}',
+                f'--topcell={projname}',
+                f'--path={os.path.abspath(layout_filepath)}',
+                f'--run_dir={self.param_dir}',
+                f'--mp={jobs}',
             ]
 
-        returncode = self.run_subprocess(
-            'klayout',
-            arguments + self.get_argument('args'),
-            cwd=self.param_dir,
-        )
+            # IHP has a python wrapper for running the DRC
+            returncode = self.run_subprocess(
+                'python3',
+                arguments + self.get_argument('args'),
+                cwd=self.param_dir,
+            )
+
+            # The report is placed in a .lyrdb file
+            #  - The name of this file depends on which rulesets were checked...
+            #  - Only one report remains after merging
+            report_file_path = self.param_dir + '/' + [f for f in os.listdir(self.param_dir) if len(f) >= 6 and  f[-6:] == ".lyrdb"][0]
+
+        else:
+            returncode = self.run_subprocess(
+                'klayout',
+                arguments + self.get_argument('args'),
+                cwd=self.param_dir,
+            )
 
         # Free job(s) from the global jobs semaphore
         self.jobs_sem.release(jobs)
