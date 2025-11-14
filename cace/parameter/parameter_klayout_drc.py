@@ -15,6 +15,7 @@
 import os
 import re
 import sys
+import glob
 
 from ..common.common import run_subprocess, get_pdk_root, get_layout_path
 from .parameter import Parameter, ResultType, Argument, Result
@@ -162,8 +163,10 @@ class ParameterKLayoutDRC(Parameter):
 
             # The report is placed in a .lyrdb file
             #  - The name of this file depends on which rulesets were checked...
-            #  - Only one report remains after merging
-            report_file_path = self.param_dir + '/' + [f for f in os.listdir(self.param_dir) if len(f) >= 6 and  f[-6:] == ".lyrdb"][0]
+            #  - Only one report should remain after merging by run_drc.py
+            report_files = glob.glob(f'{self.param_dir}/*.lyrdb')
+            if len(report_files) > 0:
+                report_file_path = report_files[0]
 
         else:
             returncode = self.run_subprocess(
