@@ -9,7 +9,9 @@ import os
 import queue
 import sys
 
-parameter_manager = ParameterManager(max_runs=None, run_path=None, max_jobs=None)
+parameter_manager = ParameterManager(
+    max_runs=None, run_path=None, max_jobs=None
+)
 parameter_manager.find_datasheet(os.getcwd(), False)
 paramkey_paramdisplay = {
     i: j.get('display', i)
