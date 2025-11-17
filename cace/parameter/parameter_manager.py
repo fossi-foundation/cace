@@ -212,7 +212,9 @@ class ParameterManager:
                         if fileext == '.yaml':
                             if basename == dirname:
                                 info(f"Loading datasheet from '{subitemref}'.")
-                                return self.load_datasheet(subitemref, init_run_dir)
+                                return self.load_datasheet(
+                                    subitemref, init_run_dir
+                                )
 
         info('No datasheet found in local project (YAML file).')
         return 1
