@@ -244,6 +244,7 @@ class Parameter(ABC, Thread):
 
         self.arguments_dict = {}
         self.results_dict = {}
+        self.plots_dict = {}
         self.result_type = ResultType.UNKNOWN
 
         self.canceled = False
@@ -1350,6 +1351,7 @@ class Parameter(ABC, Thread):
                 os.path.join(self.param_dir, filename), bbox_inches='tight'
             )
 
+        self.plots_dict[plot_name] = canvas
         return canvas
 
     def plot(

@@ -35,6 +35,8 @@
   pillow,
   tkinter,
   rich,
+  flask,
+  mpld3,
 }: let
 
   self = buildPythonPackage rec {
@@ -94,6 +96,8 @@
         ciel
         tkinter
         rich
+        mpld3
+        flask
       ]
       ++ self.includedTools;
 

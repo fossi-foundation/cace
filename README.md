@@ -38,10 +38,17 @@ python3 -m pip install --upgrade cace
 
 ## Usage
 
+### CLI:
 To invoke the CLI:
 
 ```console
 cace [datasheet] [output] [options]
+```
+
+### Web:
+To invoke the web interface:
+```console
+cace-web
 ```
 
 For more information about the usage of CACE please have a look at ["Usage Guides"](https://cace.readthedocs.io/en/latest/usage_guides/index.html) in the documentation.

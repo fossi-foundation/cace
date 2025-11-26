@@ -1,0 +1,23 @@
+Third-Party Notices:
+
+This project includes the following third-party software:
+
+- mpld3 v0.5.10
+  License: BSD 3-Clause License
+  Copyright (c) 2013, Jake Vanderplas
+  https://github.com/mpld3/mpld3
+
+- Bootstrap v5.3.3
+  License: MIT License
+  Copyright (c) 2011-2025 The Bootstrap Authors
+  https://github.com/twbs/bootstrap
+
+- Bootstrap Icons v1.13.1
+  License: MIT License
+  Copyright (c) 2019-2024 The Bootstrap Authors
+  https://github.com/twbs/icons
+
+- D3.js v5.16.0
+  License: ISC License
+  Copyright 2010-2023 Mike Bostock
+  https://github.com/d3/d3
