@@ -51,7 +51,7 @@ To invoke the web interface:
 cace-web
 ```
 
-For more information about the usage of CACE please have a look at ["Usage Guides"](https://cace.readthedocs.io/en/latest/usage_guides/index.html) in the documentation.
+For more information about the usage of CACE please have a look at ["Usage"](https://cace.readthedocs.io/en/latest/usage/index.html) in the documentation.
 
 ## Examples
 
