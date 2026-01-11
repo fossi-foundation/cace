@@ -12,45 +12,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 {
-  extra-packages ? [],
-  extra-python-packages ? [],
-  include-cace ? true
-}: ({
-  lib,
-  git,
-  zsh,
-  delta,
-  neovim,
-  gtkwave,
-  coreutils,
-  graphviz,
-  python3,
-  devshell,
-}: let
-  cace = python3.pkgs.cace;
-  cace-env = (
-    python3.withPackages (pp:
-        (if include-cace then [cace] else cace.propagatedBuildInputs)
-        ++ extra-python-packages)
-  );
-  cace-env-sitepackages = "${cace-env}/${cace-env.sitePackages}";
-  prompt = ''\[\033[1;32m\][nix-shell:\w]\$\[\033[0m\] '';
-  packages =
-  [
-    cace-env
+  extra-packages ? [ ],
+  extra-python-packages ? [ ],
+  include-cace ? true,
+}:
+(
+  {
+    lib,
+    git,
+    zsh,
+    delta,
+    neovim,
+    gtkwave,
+    coreutils,
+    graphviz,
+    python3,
+    devshell,
+  }:
+  let
+    cace = python3.pkgs.cace;
+    cace-env = (
+      python3.withPackages (
+        pp: (if include-cace then [ cace ] else cace.propagatedBuildInputs) ++ extra-python-packages
+      )
+    );
+    cace-env-sitepackages = "${cace-env}/${cace-env.sitePackages}";
+    prompt = ''\[\033[1;32m\][nix-shell:\w]\$\[\033[0m\] '';
+    packages = [
+      cace-env
 
-    # Conveniences
-    git
-    zsh
-    delta
-    neovim
-    gtkwave
-    coreutils
-    graphviz
-  ]
-  ++ extra-packages
-  ++ cace.includedTools;
-in
+      # Conveniences
+      git
+      zsh
+      delta
+      neovim
+      gtkwave
+      coreutils
+      graphviz
+    ]
+    ++ extra-packages
+    ++ cace.includedTools;
+  in
   devshell.mkShell {
     devshell.packages = packages;
     env = [
@@ -63,4 +65,5 @@ in
       text = ''PS1="${prompt}"'';
     };
     motd = "";
-  })
+  }
+)

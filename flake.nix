@@ -16,7 +16,7 @@
   description = "open-source framework for automatic circuit characterization";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda";
+    nix-eda.url = "github:fossi-foundation/nix-eda/6.0.1";
     ciel.url = "github:fossi-foundation/ciel";
     devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
@@ -25,64 +25,80 @@
   inputs.ciel.inputs.nix-eda.follows = "nix-eda";
   inputs.devshell.inputs.nixpkgs.follows = "nix-eda/nixpkgs";
 
-  outputs = {
-    self,
-    nix-eda,
-    ciel,
-    devshell,
-    ...
-  }: let
-    nixpkgs = nix-eda.inputs.nixpkgs;
-    lib = nixpkgs.lib;
-  in {
-    # Common
-    overlays = {
-      default = lib.composeManyExtensions [
-        (import ./nix/overlay.nix)
-        (nix-eda.flakesToOverlay [ciel])
-        (
-          pkgs': pkgs: let
-            callPackage = lib.callPackageWith pkgs';
-          in {
-            colab-env = callPackage ./nix/colab-env.nix {};
-          }
-        )
-        (
-          nix-eda.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
-            callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
-          in {
-            cace = callPythonPackage ./default.nix {};
-          })
-        )
-        (pkgs': pkgs: let
-          callPackage = lib.callPackageWith pkgs';
-        in
-          {}
-          // lib.optionalAttrs pkgs.stdenv.isLinux {
-            cace-docker = callPackage ./nix/docker.nix {
-              createDockerImage = nix-eda.createDockerImage;
-              cace = pkgs'.python3.pkgs.cace;
-            };
-          })
-      ];
-    };
+  outputs =
+    {
+      self,
+      nix-eda,
+      ciel,
+      devshell,
+      ...
+    }:
+    let
+      nixpkgs = nix-eda.inputs.nixpkgs;
+      lib = nixpkgs.lib;
+    in
+    {
+      # Common
+      overlays = {
+        default = lib.composeManyExtensions [
+          (ciel.overlays.default)
+          (
+            pkgs': pkgs:
+            let
+              callPackage = lib.callPackageWith pkgs';
+            in
+            {
+              colab-env = callPackage ./nix/colab-env.nix { };
+            }
+          )
+          (nix-eda.composePythonOverlay (
+            pkgs': pkgs: pypkgs': pypkgs:
+            let
+              callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
+            in
+            {
+              mpld3 = callPythonPackage ./nix/mpld3.nix { };
+              cace = callPythonPackage ./default.nix { };
+            }
+          ))
+          (
+            pkgs': pkgs:
+            let
+              callPackage = lib.callPackageWith pkgs';
+            in
+            { }
+            // lib.optionalAttrs pkgs.stdenv.isLinux {
+              cace-docker = callPackage ./nix/docker.nix {
+                createDockerImage = nix-eda.createDockerImage;
+                cace = pkgs'.python3.pkgs.cace;
+              };
+            }
+          )
+        ];
+      };
 
-    # Helper functions
-    createCaceShell = import ./nix/create-shell.nix;
+      # Helper functions
+      createCaceShell = import ./nix/create-shell.nix;
 
-    # Packages
-    legacyPackages = nix-eda.forAllSystems (
-      system:
+      # Packages
+      legacyPackages = nix-eda.forAllSystems (
+        system:
         import nix-eda.inputs.nixpkgs {
           inherit system;
-          overlays = [devshell.overlays.default nix-eda.overlays.default self.overlays.default];
+          overlays = [
+            devshell.overlays.default
+            nix-eda.overlays.default
+            self.overlays.default
+          ];
         }
-    );
+      );
 
-    packages = nix-eda.forAllSystems (
-      system: let
-        pkgs = (self.legacyPackages."${system}");
-        in {
+      packages = nix-eda.forAllSystems (
+        system:
+        let
+          pkgs = (self.legacyPackages."${system}");
+        in
+        {
           inherit (pkgs) colab-env;
           inherit (pkgs.python3.pkgs) cace;
           default = pkgs.python3.pkgs.cace;
@@ -90,50 +106,51 @@
         // lib.optionalAttrs pkgs.stdenv.isLinux {
           inherit (pkgs) cace-docker;
         }
-    );
+      );
 
-    # devshells
+      # devshells
 
-    devShells = nix-eda.forAllSystems (
-      system: let
-        pkgs = self.legacyPackages."${system}";
-        callPackage = lib.callPackageWith pkgs;
-      in {
-        # These devShells are rather unorthodox for Nix devShells in that they
-        # include the package itself. For a proper devShell, try .#dev.
-        default =
-          callPackage (self.createCaceShell {
-            }) {};
-        notebook = callPackage (self.createCaceShell {
-          extra-python-packages = with pkgs.python3.pkgs; [
-            jupyter
-            pandas
-          ];
-        }) {};
-        # Normal devShells
-        dev = callPackage (self.createCaceShell {
-          extra-packages = with pkgs; [
-          ];
-          extra-python-packages = with pkgs.python3.pkgs; [
-            setuptools
-            build
-            twine
-            black # blue
-          ];
-          include-cace = false;
-        }) {};
-        docs = callPackage (self.createCaceShell {
-          extra-packages = with pkgs; [
-          ];
-          extra-python-packages = with pkgs.python3.pkgs; [
-            sphinx
-            myst-parser
-            furo
-            sphinx-autobuild
-          ];
-          include-cace = false;
-        }) {};
-      }
-    );
-  };
+      devShells = nix-eda.forAllSystems (
+        system:
+        let
+          pkgs = self.legacyPackages."${system}";
+          callPackage = lib.callPackageWith pkgs;
+        in
+        {
+          # These devShells are rather unorthodox for Nix devShells in that they
+          # include the package itself. For a proper devShell, try .#dev.
+          default = callPackage (self.createCaceShell {
+          }) { };
+          notebook = callPackage (self.createCaceShell {
+            extra-python-packages = with pkgs.python3.pkgs; [
+              jupyter
+              pandas
+            ];
+          }) { };
+          # Normal devShells
+          dev = callPackage (self.createCaceShell {
+            extra-packages = with pkgs; [
+            ];
+            extra-python-packages = with pkgs.python3.pkgs; [
+              setuptools
+              build
+              twine
+              black # blue
+            ];
+            include-cace = false;
+          }) { };
+          docs = callPackage (self.createCaceShell {
+            extra-packages = with pkgs; [
+            ];
+            extra-python-packages = with pkgs.python3.pkgs; [
+              sphinx
+              myst-parser
+              furo
+              sphinx-autobuild
+            ];
+            include-cace = false;
+          }) { };
+        }
+      );
+    };
 }

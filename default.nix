@@ -17,17 +17,17 @@
   nix-gitignore,
   buildPythonPackage,
   setuptools,
-  setuptools_scm,
+  setuptools-scm,
 
   # Tools
-  klayout-gdsfactory,
+  klayout-app,
   magic-vlsi,
   netgen,
   ciel,
   xschem,
   ngspice,
   xyce,
-  
+
   # Python
   matplotlib,
   numpy,
@@ -37,84 +37,87 @@
   rich,
   flask,
   mpld3,
-}: let
+  klayout,
+}:
+let
 
   self = buildPythonPackage rec {
-      pname = "cace";
-      format = "pyproject";
+    pname = "cace";
+    format = "pyproject";
 
-      version_file = builtins.readFile ./cace/__version__.py;
-      version_list = builtins.match ''.+''\n__version__ = '([^']+)'.+''\n.+''$'' version_file;
-      version = builtins.head version_list;
+    version_file = builtins.readFile ./cace/__version__.py;
+    version_list = builtins.match ''.+''\n__version__ = '([^']+)'.+''\n.+''$'' version_file;
+    version = builtins.head version_list;
 
-      src = [
-        ./README.md
-        ./pyproject.toml
-        (nix-gitignore.gitignoreSourcePure "__pycache__" ./cace)
-        ./requirements.txt
-      ];
-      
-      unpackPhase = ''
-        echo $src
-        for file in $src; do
-          BASENAME=$(python3 -c "import os; print('$file'.split('-', maxsplit=1)[1], end='$EMPTY')")
-          cp -r $file $PWD/$BASENAME
-        done
-        ls -lah
-      '';
+    src = [
+      ./README.md
+      ./pyproject.toml
+      (nix-gitignore.gitignoreSourcePure "__pycache__" ./cace)
+      ./requirements.txt
+    ];
 
-      buildInputs = [
-        setuptools
-        setuptools_scm
-      ];
-      
-      includedTools = if stdenv.hostPlatform.isDarwin
-        then
-      ([
-        klayout-gdsfactory
-        magic-vlsi
-        netgen
-        ngspice
-        xschem
-      ])
-        else
-      ([
-        klayout-gdsfactory
-        magic-vlsi
-        netgen
-        ngspice
-        xschem
-        xyce
-      ]);
+    unpackPhase = ''
+      echo $src
+      for file in $src; do
+        BASENAME=$(python3 -c "import os; print('$file'.split('-', maxsplit=1)[1], end='$EMPTY')")
+        cp -r $file $PWD/$BASENAME
+      done
+      ls -lah
+    '';
 
-      propagatedBuildInputs = [
-        # Python
-        matplotlib
-        numpy
-        scipy
-        pillow
-        ciel
-        tkinter
-        rich
-        mpld3
-        flask
-      ]
-      ++ self.includedTools;
+    buildInputs = [
+      setuptools
+      setuptools-scm
+    ];
 
-      computed_PATH = lib.makeBinPath self.propagatedBuildInputs;
+    includedTools =
+      if stdenv.hostPlatform.isDarwin then
+        ([
+          klayout-app
+          magic-vlsi
+          netgen
+          ngspice
+          xschem
+        ])
+      else
+        ([
+          klayout-app
+          magic-vlsi
+          netgen
+          ngspice
+          xschem
+          xyce
+        ]);
 
-      # Make PATH available to CACE subprocesses
-      makeWrapperArgs = [
-        "--prefix PATH : ${self.computed_PATH}"
-      ];
+    propagatedBuildInputs = [
+      # Python
+      matplotlib
+      numpy
+      scipy
+      pillow
+      ciel
+      tkinter
+      rich
+      mpld3
+      flask
+      klayout
+    ]
+    ++ self.includedTools;
 
-      meta = with lib; {
-        description = "Circuit Automatic Characterization Engine";
-        homepage = "https://github.com/fossi-foundation/cace";
-        mainProgram = "cace";
-        license = licenses.asl20;
-        platforms = platforms.linux ++ platforms.darwin;
-      };
+    computed_PATH = lib.makeBinPath self.propagatedBuildInputs;
+
+    # Make PATH available to CACE subprocesses
+    makeWrapperArgs = [
+      "--prefix PATH : ${self.computed_PATH}"
+    ];
+
+    meta = with lib; {
+      description = "Circuit Automatic Characterization Engine";
+      homepage = "https://github.com/fossi-foundation/cace";
+      mainProgram = "cace";
+      license = licenses.asl20;
+      platforms = platforms.linux ++ platforms.darwin;
     };
-  in
-    self
+  };
+in
+self

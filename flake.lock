@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1751196691,
-        "narHash": "sha256-zx/8mF88mRqWNhoh9ZGVXjfcHxZKfY5bbAeW/ThGTms=",
+        "lastModified": 1764091696,
+        "narHash": "sha256-AWbkHL0zO3tD0mE3dZIcj8mVND7o3imTxOpEfOtlRDI=",
         "owner": "fossi-foundation",
         "repo": "ciel",
-        "rev": "76a0f5984ab60fca723759cdb2445db167b5c6b4",
+        "rev": "afcb23d368614ffa1e7e96584ed33f839c71c576",
         "type": "github"
       },
       "original": {
@@ -28,11 +28,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1741473158,
-        "narHash": "sha256-kWNaq6wQUbUMlPgw8Y+9/9wP0F8SHkjy24/mN3UAppg=",
+        "lastModified": 1764011051,
+        "narHash": "sha256-M7SZyPZiqZUR/EiiBJnmyUbOi5oE/03tCeFrTiUZchI=",
         "owner": "numtide",
         "repo": "devshell",
-        "rev": "7c9e793ebe66bcba8292989a68c0419b737a22a0",
+        "rev": "17ed8d9744ebe70424659b0ef74ad6d41fc87071",
         "type": "github"
       },
       "original": {
@@ -60,31 +60,32 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1749725724,
-        "narHash": "sha256-icAnetAUVAETit4dYUL+6eLTXd1+xDjtrSCcI8x1zs0=",
+        "lastModified": 1768053828,
+        "narHash": "sha256-u45uYnM8W7NXq7hCVwxPuASDZY4tLwLIlk9y9PamvMU=",
         "owner": "fossi-foundation",
         "repo": "nix-eda",
-        "rev": "7d5632a4e489368343057bc0774a84f867019d36",
+        "rev": "229ea0b01ac497ae4df3441f48533c2249db13df",
         "type": "github"
       },
       "original": {
         "owner": "fossi-foundation",
+        "ref": "6.0.1",
         "repo": "nix-eda",
         "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1733120037,
-        "narHash": "sha256-En+gSoVJ3iQKPDU1FHrR6zIxSLXKjzKY+pnh9tt+Yts=",
+        "lastModified": 1766201043,
+        "narHash": "sha256-eplAP+rorKKd0gNjV3rA6+0WMzb1X1i16F5m5pASnjA=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "f9f0d5c5380be0a599b1fb54641fa99af8281539",
+        "rev": "b3aad468604d3e488d627c0b43984eb60e75e782",
         "type": "github"
       },
       "original": {
         "owner": "nixos",
-        "ref": "nixos-24.11",
+        "ref": "nixos-25.11",
         "repo": "nixpkgs",
         "type": "github"
       }
