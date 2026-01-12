@@ -357,6 +357,9 @@ class Parameter(ABC, Thread):
             f'Subprocess {proc} {" ".join(args)} at \'[repr.filename][link=file://{os.path.abspath(cwd)}]{os.path.relpath(cwd)}[/link][/repr.filename]\'…'
         )
 
+        with open(os.path.join(cwd, 'COMMAND'), 'w') as f:
+            f.write(f"{proc} {' '.join(args)}")
+
         with subprocess.Popen(
             [proc] + args,
             cwd=cwd,

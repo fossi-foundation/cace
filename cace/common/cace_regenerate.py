@@ -507,14 +507,14 @@ def check_dependencies(datasheet, debug=False):
     return False
 
 
-def regenerate_schematic_netlist(datasheet, runtime_options):
+def regenerate_schematic_netlist(datasheet, runtime_options, lvs=False):
     """Regenerate the schematic-captured netlist if out-of-date or if forced."""
 
     debug = runtime_options['debug']
     force_regenerate = runtime_options['force']
 
     dname = datasheet['name']
-    netlistname = dname + '.spice'
+    netlistname = dname + '.lvs.spice' if lvs else dname + '.spice'
     xschemname = dname + '.sch'
 
     paths = datasheet['paths']
@@ -628,7 +628,11 @@ def regenerate_schematic_netlist(datasheet, runtime_options):
             '-x',
             '-q',
             '--tcl',
-            'set top_is_subckt 1',
+            (
+                'set lvs_netlist 1; set lvs_ignore 1'
+                if lvs
+                else 'set top_is_subckt 1'
+            ),  # set lvs_ignore 1
         ]
 
         # Check whether there is an xschemrc file in the project
@@ -844,6 +848,9 @@ def regenerate_netlists(datasheet, runtime_options):
     # Either the netlist source is "schematic", or we need it
     # to get the correct port order for the extracted netlists
     result = regenerate_schematic_netlist(datasheet, runtime_options)
+
+    # TODO generate LVS netlist schematic
+    regenerate_schematic_netlist(datasheet, runtime_options, lvs=True)
 
     # Layout extracted netlist
     if source == 'layout':

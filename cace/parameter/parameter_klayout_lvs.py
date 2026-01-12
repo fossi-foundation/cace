@@ -86,7 +86,7 @@ class ParameterKLayoutLVS(Parameter):
                     paths['netlist'], 'schematic'
                 )
                 schem_netlist = os.path.join(
-                    schem_netlist_path, projname + '.spice'
+                    schem_netlist_path, projname + '.lvs.spice'
                 )
                 schem_netlist = os.path.abspath(schem_netlist)
 
