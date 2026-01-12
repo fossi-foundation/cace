@@ -70,6 +70,7 @@ class ParameterManager:
         self.datasheet = datasheet
         self.max_runs = max_runs
         self.run_path = run_path
+        self.dspath = None
 
         self.worker_thread = None
 
@@ -178,6 +179,7 @@ class ParameterManager:
         if init_run_dir:
             self.prepare_run_dir()
 
+        self.dspath = os.path.abspath(datasheet_path)
         return 0
 
     def find_datasheet(self, search_dir, init_run_dir=True):
@@ -250,13 +252,19 @@ class ParameterManager:
         """Return the datasheet"""
         return self.datasheet
 
-    def summarize_datasheet(self):
-        return markdown_summary(
+    def summarize_datasheet(self, save=False):
+        md_sum = markdown_summary(
             self.datasheet,
             self.runtime_options,
             self.results,
             self.result_types,
         )
+
+        if save:
+            with open(self.run_dir + '/summary.md', 'w') as f:
+                print(md_sum, file=f)
+
+        return md_sum
 
     def generate_documentation(self):
         if 'documentation' in self.datasheet['paths']:
