@@ -23,7 +23,7 @@ Follow the navigation element below (or check the sidebar on the left) to get st
 
 getting_started/index
 usage/index
-reference_manual/index
+reference/index
 tutorials/index
 examples/index
 dev/index

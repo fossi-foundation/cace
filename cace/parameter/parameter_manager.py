@@ -44,16 +44,7 @@ from ..logging import (
     err,
 )
 
-registered_parameters = {}
-
-
-def register_parameter(name):
-    def inner(cls):
-        registered_parameters[name] = cls
-        return cls
-
-    return inner
-
+from .registry import find_tool
 
 class ParameterManager:
     """
@@ -495,21 +486,55 @@ class ParameterManager:
         pdk = self.datasheet['PDK']
 
         if pname in self.datasheet['parameters']:
-
             param = self.datasheet['parameters'][pname]
-            tool = param['tool']
-
-            # Get the name of the tool
-            if isinstance(tool, str):
-                toolname = tool
+            
+            # Get the tool name and its variables
+            if isinstance(param['tool'], str):
+                toolname = param['tool']
+                variables = {}
             else:
-                toolname = list(tool.keys())[0]
+                toolname = list(param['tool'].keys())[0]
+                variables = param['tool'][toolname]
 
-            if toolname in registered_parameters.keys():
-                cls = registered_parameters[toolname]
-
+            if cls := find_tool(toolname):
+            
+                print("-----------")
+                print(toolname)
+                print(variables)
+            
+                processed_variables = {}
+            
+                for config_var in cls.config_vars:
+                    if config_var.name in variables:
+                        value = variables[config_var.name]
+                        explicitly_specified = True
+                    else:
+                        explicitly_specified = False
+                        value = None
+                    
+                    key_path = f"{pname}.{cls.id}.{config_var.name}"
+                    
+                    print(key_path)
+                    print(value)
+                    print(config_var.default)
+                    print(config_var.type)
+                    
+                    # Validate the types
+                    val = config_var._Variable__process(
+                        key_path=key_path,
+                        value=value,
+                        default=config_var.default,
+                        validating_type=config_var.type,
+                        explicitly_specified=explicitly_specified,
+                    )
+                    
+                    processed_variables[config_var.name] = val
+                
+                print(processed_variables)
+            
                 new_sim_param = cls(
                     pname,
+                    processed_variables,
                     param,
                     self.datasheet,
                     pdk,

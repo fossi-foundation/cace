@@ -29,6 +29,7 @@ from ..logging import (
     warn,
     err,
 )
+from ..parameter.registry import find_tool
 
 
 def specchar_sub(string):
@@ -635,5 +636,51 @@ def validate_datasheet(datasheet):
         else:
             err(f'No tool listed in {param["name"]}.')
             return None
+
+    # Process the variables for the tools
+    for param_name, param in datasheet['parameters'].items():
+        if 'tool' in param:
+            # Get the tool name and its variables
+            if isinstance(param['tool'], str):
+                toolname = param['tool']
+                variables = {}
+            else:
+                toolname = list(param['tool'].keys())[0]
+                variables = param['tool'][toolname]
+        
+            # Find tool via old name or new ID
+            if cls := find_tool(toolname):
+            
+                print("-----------")
+                print(toolname)
+                print(variables)
+            
+                for config_var in cls.config_vars:
+                    if config_var.name in variables:
+                        value = variables[config_var.name]
+                        explicitly_specified = True
+                    else:
+                        explicitly_specified = False
+                        value = None
+                    
+                    key_path = f"{param_name}.{cls.id}.{config_var.name}"
+                    
+                    print(key_path)
+                    print(value)
+                    print(config_var.default)
+                    print(config_var.type)
+                    
+                    # Validate the types
+                    config_var._Variable__process(
+                        key_path=key_path,
+                        value=value,
+                        default=config_var.default,
+                        validating_type=config_var.type,
+                        explicitly_specified=explicitly_specified,
+                    )
+
+            else:
+                err(f'Unknown tool: {param['tool']}.')
+                return None
 
     return datasheet

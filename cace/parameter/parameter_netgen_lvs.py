@@ -17,14 +17,20 @@ import re
 import sys
 import math
 import json
+from typing import (
+    Optional,
+    List,
+    Any,
+)
 
+from ..config import Variable, Result
+from ..common.types import Path
 from ..common.common import (
     run_subprocess,
     get_netgen_setupfile,
 )
-
-from .parameter import Parameter, ResultType, Argument, Result
-
+from .parameter import Parameter, ResultType, NamedResult
+from .registry import register_parameter
 from ..logging import (
     dbg,
     verbose,
@@ -36,14 +42,40 @@ from ..logging import (
     err,
 )
 
-from .parameter_manager import register_parameter
-
 
 @register_parameter('netgen_lvs')
 class ParameterNetgenLVS(Parameter):
     """
-    Run LVS using netgen
+    Run LVS using netgen.
+    
+    ```{note}
+    The `netgen_lvs` tool always compares the `schematic` netlist with the `layout` extracted netlist, independent of the selected netlist source.
+    ```
     """
+
+    id = "Netgen.LVS"
+    name = "Layout Versus Schematic (Netgen)"
+
+    config_vars = [
+        Variable(
+            "args",
+            Optional[List[str]],
+            "Additional arguments.",
+        ),
+        Variable(
+            "script",
+            Optional[Path],
+            "Custom netgen LVS script located relative to `scripts/`.",
+        ),
+    ]
+    
+    config_results = [
+        Result(
+            "lvs_errors",
+            Any,
+            "The number of LVS errors.",
+        ),
+    ]
 
     def __init__(
         self,
@@ -54,11 +86,6 @@ class ParameterNetgenLVS(Parameter):
             *args,
             **kwargs,
         )
-
-        self.add_result(Result('lvs_errors'))
-
-        self.add_argument(Argument('args', [], False))
-        self.add_argument(Argument('script', None, False))
 
     def is_runnable(self):
         netlist_source = self.runtime_options['netlist_source']
@@ -162,13 +189,13 @@ class ParameterNetgenLVS(Parameter):
             jsonfilename = projname + '_comp.json'
             jsonfilepath = os.path.join(self.param_dir, jsonfilename)
 
-            if self.get_argument('script'):
+            if self.config['script']:
                 lvsargs = ['-batch', 'source']
 
                 # Use the custom script
                 lvsargs.append(
                     os.path.abspath(
-                        os.path.join(scriptspath, self.get_argument('script'))
+                        os.path.join(scriptspath, self.config['script'])
                     )
                 )
 
@@ -180,7 +207,8 @@ class ParameterNetgenLVS(Parameter):
                 lvsargs.append(outfilepath)
                 lvsargs.append('-json')
 
-            lvsargs.extend(self.get_argument('args'))
+            if self.config['args']:
+                lvsargs.extend(self.config['args'])
 
             returncode = self.run_subprocess(
                 'netgen', lvsargs, cwd=self.param_dir

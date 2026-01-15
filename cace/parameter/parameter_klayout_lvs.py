@@ -17,11 +17,17 @@ import re
 import sys
 import math
 import json
+from typing import (
+    Optional,
+    List,
+    Any,
+)
 
+from ..config import Variable, Result
+from ..common.types import Path
 from ..common.common import run_subprocess, get_pdk_root, get_layout_path
-
-from .parameter import Parameter, ResultType, Argument, Result
-from .parameter_manager import register_parameter
+from .parameter import Parameter, ResultType, NamedResult
+from .registry import register_parameter
 from ..logging import (
     dbg,
     verbose,
@@ -37,8 +43,32 @@ from ..logging import (
 @register_parameter('klayout_lvs')
 class ParameterKLayoutLVS(Parameter):
     """
-    Run LVS using KLayout
+    Run LVS using KLayout.
     """
+
+    id = "KLayout.LVS"
+    name = "Layout Versus Schematic (KLayout)"
+
+    config_vars = [
+        Variable(
+            "args",
+            Optional[List[str]],
+            "Additional arguments. For example `['-rd', 'variable=value']`.",
+        ),
+        Variable(
+            "script",
+            Optional[Path],
+            "Custom LVS script relative to `scripts/`.",
+        ),
+    ]
+    
+    config_results = [
+        Result(
+            "lvs_errors",
+            Any,
+            "The number of LVS errors.",
+        ),
+    ]
 
     def __init__(
         self,
@@ -49,11 +79,6 @@ class ParameterKLayoutLVS(Parameter):
             *args,
             **kwargs,
         )
-
-        self.add_result(Result('lvs_errors'))
-
-        self.add_argument(Argument('args', [], False))
-        self.add_argument(Argument('script', None, False))
 
     def is_runnable(self):
         netlist_source = self.runtime_options['netlist_source']
@@ -108,9 +133,9 @@ class ParameterKLayoutLVS(Parameter):
                 self.result_type = ResultType.ERROR
                 return
 
-            if self.get_argument('script'):
+            if self.config['script']:
                 lvs_script_path = os.path.abspath(
-                    os.path.join(scriptspath, self.get_argument('script'))
+                    os.path.join(scriptspath, self.config['script'])
                 )
             else:
                 # PDK specific arguments
@@ -162,6 +187,7 @@ class ParameterKLayoutLVS(Parameter):
                     '-rd',
                     f'thr={os.cpu_count()}',
                 ]
+
             if self.datasheet['PDK'].startswith('ihp-sg13g2'):
                 arguments = [
                     '-b',
@@ -180,10 +206,13 @@ class ParameterKLayoutLVS(Parameter):
                     '-rd',
                     f'thr={os.cpu_count()}',
                 ]
+                
+            if self.config['args']:
+                arguments.extend(self.config['args'])
 
             returncode = self.run_subprocess(
                 'klayout',
-                arguments + self.get_argument('args'),
+                arguments,
                 cwd=self.param_dir,
             )
 

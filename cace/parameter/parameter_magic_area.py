@@ -19,11 +19,17 @@ import math
 import json
 import threading
 import subprocess
+from typing import (
+    Optional,
+    List,
+    Any,
+)
 
+from ..config import Variable, Result
 from ..common.common import run_subprocess, get_magic_rcfile, get_layout_path
 from ..common.ring_buffer import RingBuffer
-from .parameter import Parameter, ResultType, Argument, Result
-from .parameter_manager import register_parameter
+from .parameter import Parameter, ResultType, NamedResult
+from .registry import register_parameter
 from ..logging import (
     dbg,
     verbose,
@@ -39,17 +45,40 @@ from ..logging import (
 @register_parameter('magic_area')
 class ParameterMagicArea(Parameter):
     """
-    Determine bounds of the design geometry
-
-    "cond" should be one of "area", "width", or "height", and determines
-    what value is returned by the routine.
-
-    The routine reads the .mag or .gds file of the layout and returns
-    the width and height values in microns.  This is captured from
-    standard output and the requested result returned to the calling
-    routine.
-
+    Take measurements of the layout geometry using magic.
     """
+
+    id = "Magic.Geometry"
+    name = "Get area, width and height (Magic)"
+
+    config_vars = [
+        Variable(
+            "args",
+            Optional[List[str]],
+            "Additional arguments.",
+        ),
+    ]
+
+    config_results = [
+        Result(
+            "area",
+            Any,
+            "The area of the layout.",
+            units="μm²"
+        ),
+        Result(
+            "width",
+            Any,
+            "The width of the layout.",
+            units="μm"
+        ),
+        Result(
+            "height",
+            Any,
+            "The height of the layout.",
+            units="μm"
+        ),
+    ]
 
     def __init__(
         self,
@@ -60,12 +89,6 @@ class ParameterMagicArea(Parameter):
             *args,
             **kwargs,
         )
-
-        self.add_result(Result('area'))
-        self.add_result(Result('width'))
-        self.add_result(Result('height'))
-
-        self.add_argument(Argument('args', [], False))
 
     def is_runnable(self):
         netlist_source = self.runtime_options['netlist_source']
@@ -129,10 +152,14 @@ class ParameterMagicArea(Parameter):
             magic_input += 'box\n'
             magic_input += 'quit -noprompt\n'
 
+            arguments = ['-dnull', '-noconsole', '-rcfile', rcfile]
+
+            if self.config['args']:
+                arguments.extend(self.config['args'])
+
             returncode = self.run_subprocess(
                 'magic',
-                ['-dnull', '-noconsole', '-rcfile', rcfile]
-                + self.get_argument('args'),
+                arguments,
                 input=magic_input,
                 cwd=self.param_dir,
             )

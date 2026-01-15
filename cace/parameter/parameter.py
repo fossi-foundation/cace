@@ -16,6 +16,7 @@ import os
 import re
 import sys
 import copy
+import textwrap
 import traceback
 import subprocess
 from statistics import median, mean
@@ -25,14 +26,31 @@ from threading import Thread
 from multiprocessing import cpu_count
 from multiprocessing.pool import ThreadPool
 from matplotlib.figure import Figure
+from typing import (
+    Any,
+    List,
+    Callable,
+    Optional,
+    Set,
+    Union,
+    Tuple,
+    Sequence,
+    Dict,
+    ClassVar,
+    Type,
+    Generic,
+    TypeVar,
+)
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
+from ..common import slugify
 from ..common.safe_eval import safe_eval
 from ..common.misc import mkdirp
 from ..common.spiceunits import spice_unit_convert
 from ..common.common import linseq, logseq
+from ..config import Variable, Result
 from ..logging import (
     dbg,
     verbose,
@@ -70,7 +88,7 @@ class ResultType(Enum):
             return '???'
 
 
-class Result:
+class NamedResult:
     """
     Holds the named result of a parameter.
     For example "lvs_errors"
@@ -97,18 +115,6 @@ class Result:
 
     def __str__(self):
         return f'{self.name} with values {self.values}'
-
-
-class Argument:
-    """
-    Argument that can be supplied to a tool.
-    """
-
-    def __init__(self, name, default=None, required=False):
-        self.name = name
-        self.default = default
-        self.required = required
-
 
 class Condition:
     def __init__(self):
@@ -190,10 +196,81 @@ class Parameter(ABC, Thread):
 
     # Vectors in name[number|range] format
     vectrex = re.compile(r'([^\[]+)\[([0-9:]+)\]')
+    
+    # Class Variables
+    id: str = NotImplemented
+    config_vars: ClassVar[List[Variable]] = []
+    config_results: ClassVar[List[Result]] = []
+    
+    # Instance Variables
+    name: str
+    
+    @classmethod
+    def __get_desc(Self) -> str:  # pragma: no cover
+        if hasattr(Self, "long_name"):
+            return Self.long_name
+        elif hasattr(Self, "name"):
+            return Self.name
+        return Self.__name__
+    
+    @classmethod
+    def get_help_md(
+        Self,
+        *,
+        docstring_override: str = "",
+        use_dropdown: bool = False,
+        myst_anchors: bool = False,
+    ):  # pragma: no cover
+        """
+        Renders Markdown help for this step to a string.
+        """
+        doc_string = docstring_override
+        if Self.__doc__:
+            doc_string = textwrap.dedent(Self.__doc__)
+        
+        result = f"ID: `{Self.id}`\n" + doc_string
+        
+        if len(Self.config_vars):
+            config_var_anchors = f"({Self.id.lower()}-configuration-variables)="
+            result += textwrap.dedent(
+                f"""
+                {config_var_anchors * myst_anchors}
+                #### Configuration Variables
+                """
+            )
+            result += Variable._render_table_md(
+                Self.config_vars, myst_anchor_owner_id=Self.id if myst_anchors else None
+            )
+
+        if len(Self.config_results):
+            config_result_anchors = f"({Self.id.lower()}-configuration-results)="
+            result += textwrap.dedent(
+                f"""
+                {config_result_anchors * myst_anchors}
+                #### Results
+                """
+            )
+            result += Result._render_table_md(
+                Self.config_results, myst_anchor_owner_id=Self.id if myst_anchors else None
+            )
+
+        step_anchor = f"(step-{slugify(Self.id.lower())})="
+        result = (
+            textwrap.dedent(
+                f"""
+                {step_anchor * myst_anchors}
+                ### {Self.__get_desc()}
+                """
+            )
+            + result
+        )
+
+        return result
 
     def __init__(
         self,
         pname,
+        config,
         param,
         datasheet,
         pdk,
@@ -210,6 +287,7 @@ class Parameter(ABC, Thread):
         **kwargs,
     ):
         self.pname = pname
+        self.config = config
         self.param = param
         self.datasheet = datasheet
         self.pdk = pdk
@@ -242,8 +320,11 @@ class Parameter(ABC, Thread):
             self.toolname = list(tool.keys())[0]
             self.tooldict = tool[self.toolname]
 
-        self.arguments_dict = {}
         self.results_dict = {}
+        
+        for result in self.config_results:
+            self.add_result(NamedResult(result.name))
+        
         self.plots_dict = {}
         self.result_type = ResultType.UNKNOWN
 
@@ -251,23 +332,6 @@ class Parameter(ABC, Thread):
         self.done = False
 
         super().__init__(*args, **kwargs)
-
-    def add_argument(self, arg: Argument):
-        if arg.required:
-            if not self.tooldict or not arg.name in self.tooldict:
-                warn(f'Expected {arg.name} in {self.toolname}')
-
-        if self.tooldict and arg.name in self.tooldict:
-            self.arguments_dict[arg.name] = self.tooldict[arg.name]
-        else:
-            self.arguments_dict[arg.name] = arg.default
-
-    def get_argument(self, name: str):
-        if name in self.arguments_dict:
-            return self.arguments_dict[name]
-
-        warn(f'Could not find argument {name}.')
-        return None
 
     def add_result(self, arg: Result):
         self.results_dict[arg.name] = arg

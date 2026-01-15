@@ -15,10 +15,16 @@
 import os
 import re
 import sys
+from typing import (
+    Optional,
+    List,
+    Any,
+)
 
+from ..config import Variable, Result
 from ..common.common import run_subprocess, get_magic_rcfile, get_layout_path
-from .parameter import Parameter, ResultType, Argument, Result
-from .parameter_manager import register_parameter
+from .parameter import Parameter, ResultType, NamedResult
+from .registry import register_parameter
 from ..logging import (
     dbg,
     verbose,
@@ -34,8 +40,33 @@ from ..logging import (
 @register_parameter('magic_drc')
 class ParameterMagicDRC(Parameter):
     """
-    Run magic drc
+    Run DRC using magic.
     """
+
+    id = "Magic.DRC"
+    name = "Design Rule Check (Magic)"
+
+    config_vars = [
+        Variable(
+            "args",
+            Optional[List[str]],
+            "Additional arguments.",
+        ),
+        Variable(
+            "gds_flatten",
+            bool,
+            "Flatten the GDS before running the check.",
+            default=False,
+        ),
+    ]
+
+    config_results = [
+        Result(
+            "drc_errors",
+            Any,
+            "The number of DRC errors.",
+        ),
+    ]
 
     def __init__(
         self,
@@ -46,11 +77,6 @@ class ParameterMagicDRC(Parameter):
             *args,
             **kwargs,
         )
-
-        self.add_result(Result('drc_errors'))
-
-        self.add_argument(Argument('args', [], False))
-        self.add_argument(Argument('gds_flatten', False, False))
 
     def is_runnable(self):
         netlist_source = self.runtime_options['netlist_source']
@@ -100,7 +126,7 @@ class ParameterMagicDRC(Parameter):
                 magic_input += f'path search +{os.path.abspath(os.path.dirname(layout_filepath))}\n'
                 magic_input += f'load {os.path.basename(layout_filepath)}\n'
             else:
-                if self.get_argument('gds_flatten'):
+                if self.config['gds_flatten']:
                     magic_input += 'gds flatglob *\n'
                 else:
                     # sky130
@@ -126,10 +152,14 @@ class ParameterMagicDRC(Parameter):
             magic_input += '   puts stdout $x\n'
             magic_input += '}\n'
 
+            arguments = ['-dnull', '-noconsole', '-rcfile', rcfile]
+
+            if self.config['args']:
+                arguments.extend(self.config['args'])
+
             returncode = self.run_subprocess(
                 'magic',
-                ['-dnull', '-noconsole', '-rcfile', rcfile]
-                + self.get_argument('args'),
+                arguments,
                 input=magic_input,
                 cwd=self.param_dir,
             )

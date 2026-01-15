@@ -132,3 +132,27 @@ def mkdirp(path: typing.Union[str, os.PathLike]):
     :param path: A filesystem path for the directory
     """
     return pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+
+class zip_first(object):
+    """
+    Works like ``zip_longest`` if ｜a｜ > ｜b｜ and ``zip`` if ｜a｜ <= ｜b｜.
+    """
+
+    def __init__(self, a: Iterable, b: Iterable, fillvalue: Any) -> None:
+        self.a = a
+        self.b = b
+        self.fillvalue = fillvalue
+
+    def __iter__(self):
+        self.iter_a = iter(self.a)
+        self.iter_b = iter(self.b)
+        return self
+
+    def __next__(self):
+        a = next(self.iter_a)
+        b = self.fillvalue
+        try:
+            b = next(self.iter_b)
+        except StopIteration:
+            pass
+        return (a, b)

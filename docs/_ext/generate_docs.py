@@ -23,10 +23,8 @@ import jinja2
 from sphinx.config import Config
 from sphinx.application import Sphinx
 
-import cace
-import cace.parameter
-
-from cace.parameter import registered_parameters
+from cace.common import slugify
+from cace.parameter.registry import get_tools
 
 def setup(app: Sphinx):
     app.connect("config-inited", generate_module_docs)
@@ -57,37 +55,48 @@ def generate_module_docs(app: Sphinx, conf: Config):
             loader=lookup,
         )
         
-        class Parameter:
-            def __init__(self, name="None"):
-                self.name = name
-            
-            def get_help_md(self, use_dropdown=False, myst_anchors=False):
-                return self.name
+        
+        # Pre-processing
+        by_category = {}
+        for param in get_tools().values():
+            category, _ = param.id.split(".")
+            if by_category.get(category) is None:
+                by_category[category] = []
+            by_category[category].append(param)
 
-        print(registered_parameters)
+        print(by_category)
 
-        categories_sorted = [
-            ("Category 1", [
-                    ("KLayout", Parameter("KLayout")),
-                    ("magic", Parameter()),
-                ]
-            ),
-            ("Category 2", [
-                    ("netgen", Parameter()),
-                    ("ngspice", Parameter()),
-                ]
-            ),
+        misc = ("Misc", by_category.get("Misc",[]))
+        if "Misc" in by_category:
+            del by_category["Misc"]
+
+        print(by_category.items())
+
+        ## Sort Categories
+        categories_sorted = list(sorted(by_category.items(), key=lambda c: c[0])) + [
+            misc
         ]
+
+        print(categories_sorted)
+
+        ## Sort Steps
+        for i in range(0, len(categories_sorted)):
+            category, step_list = categories_sorted[i]
+            steps_sorted = list(sorted(step_list, key=lambda s: s.id))
+            categories_sorted[i] = (category, steps_sorted)
+
+        print(categories_sorted)
+
 
         # --
 
-        template = env.get_template("parameters.md")
+        template = env.get_template("tools.md")
         with open(
-            os.path.join(doc_root_dir, "reference", "parameters.md"), "w"
+            os.path.join(doc_root_dir, "reference", "tools.md"), "w"
         ) as f:
             f.write(
                 template.render(
-                    #slugify=slugify,
+                    slugify=slugify,
                     categories_sorted=categories_sorted,
                 )
             )

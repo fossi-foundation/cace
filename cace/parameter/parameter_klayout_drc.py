@@ -16,10 +16,18 @@ import os
 import re
 import sys
 import glob
+from typing import (
+    Optional,
+    List,
+    Literal,
+    Any,
+)
 
+from ..config import Variable, Result
+from ..common.types import Path
 from ..common.common import run_subprocess, get_pdk_root, get_layout_path
-from .parameter import Parameter, ResultType, Argument, Result
-from .parameter_manager import register_parameter
+from .parameter import Parameter, ResultType, NamedResult
+from .registry import register_parameter
 from ..logging import (
     dbg,
     verbose,
@@ -35,8 +43,38 @@ from ..logging import (
 @register_parameter('klayout_drc')
 class ParameterKLayoutDRC(Parameter):
     """
-    Run KLayout drc
+    Run DRC using KLayout.
     """
+
+    id = "KLayout.DRC"
+    name = "Design Rule Check (KLayout)"
+
+    config_vars = [
+        Variable(
+            "jobs",
+            int|Literal['max'],
+            "Number of jobs to run in parallel.",
+            default=1,
+        ),
+        Variable(
+            "args",
+            Optional[List[str]],
+            "Additional arguments. For example `['-rd', 'variable=value']`.",
+        ),
+        Variable(
+            "drc_script_path",
+            Optional[Path],
+            "Path to a custom KLayout DRC script. If not specified, the PDK DRC deck is used.",
+        ),
+    ]
+    
+    config_results = [
+        Result(
+            "drc_errors",
+            Any,
+            "The number of DRC errors.",
+        ),
+    ]
 
     def __init__(
         self,
@@ -47,12 +85,6 @@ class ParameterKLayoutDRC(Parameter):
             *args,
             **kwargs,
         )
-
-        self.add_result(Result('drc_errors'))
-
-        self.add_argument(Argument('jobs', 1, False))
-        self.add_argument(Argument('args', [], False))
-        self.add_argument(Argument('drc_script_path', None, False))
 
     def is_runnable(self):
         netlist_source = self.runtime_options['netlist_source']
@@ -68,7 +100,7 @@ class ParameterKLayoutDRC(Parameter):
 
         self.cancel_point()
 
-        jobs = self.get_argument('jobs')
+        jobs = self.config['jobs']
 
         if jobs == 'max':
             # Set the number of jobs to the number of cores
@@ -97,7 +129,7 @@ class ParameterKLayoutDRC(Parameter):
             self.jobs_sem.release(jobs)
             return
 
-        drc_script_path = self.get_argument('drc_script_path')
+        drc_script_path = self.config['drc_script_path']
 
         if drc_script_path == None:
             if self.datasheet['PDK'].startswith('sky130'):
@@ -145,6 +177,8 @@ class ParameterKLayoutDRC(Parameter):
                 '-rd',
                 f'thr={jobs}',
             ]
+
+
         if self.datasheet['PDK'].startswith('ihp-sg13g2'):
             arguments = [
                 drc_script_path,
@@ -153,11 +187,14 @@ class ParameterKLayoutDRC(Parameter):
                 f'--run_dir={self.param_dir}',
                 f'--mp={jobs}',
             ]
+            
+            if self.config['args']:
+                arguments.extend(self.config['args'])
 
             # IHP has a python wrapper for running the DRC
             returncode = self.run_subprocess(
                 'python3',
-                arguments + self.get_argument('args'),
+                arguments,
                 cwd=self.param_dir,
             )
 
@@ -169,9 +206,12 @@ class ParameterKLayoutDRC(Parameter):
                 report_file_path = report_files[0]
 
         else:
+            if self.config['args']:
+                arguments.extend(self.config['args'])
+        
             returncode = self.run_subprocess(
                 'klayout',
-                arguments + self.get_argument('args'),
+                arguments,
                 cwd=self.param_dir,
             )
 
