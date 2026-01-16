@@ -23,3 +23,4 @@ from .parameter_magic_antenna_check import ParameterMagicAntennaCheck
 from .parameter_ngspice import ParameterNgspice
 from .parameter_klayout_drc import ParameterKLayoutDRC
 from .parameter_klayout_lvs import ParameterKLayoutLVS
+from .parameter_klayout_antenna import ParameterKLayoutAntenna
