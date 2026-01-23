@@ -242,6 +242,10 @@ def markdown_summary(datasheet, runtime_options, results, result_types):
 
     result += f'**netlist source**: {runtime_options["netlist_source"]}\n\n'
 
+    # Add collapsible section for parameters
+    result += '<details open>\n'
+    result += '<summary>📊 Parameter Results</summary>\n\n'
+
     # Print the table headings
     result += ''.join(
         [
@@ -399,7 +403,7 @@ def markdown_summary(datasheet, runtime_options, results, result_types):
                 ]
             )
 
-    result += '\n'
+    result += '\n</details>\n\n'
     return result
 
 
