@@ -13,10 +13,6 @@ inputs:
     description: Whether to run unit tests and the smoke test
     required: false
     default: "false"
-  pdk_root:
-    description: "An optional override for the PDK root."
-    required: false
-    default: "$HOME/.ciel"
 runs:
   using: "composite"
   steps:
@@ -43,15 +39,4 @@ runs:
           --option system ${{ inputs.nix_system }}\
           --extra-platforms ${{ inputs.nix_system }}\
           --accept-flake-config\
-          .#packages.${{ inputs.nix_system }}.cace -- --help
-    #- name: Unit/Step Tests
-    #  shell: ${{ inputs.shell }}
-    #  if: inputs.run_tests == 'true'
-    #  run: |
-    #    echo "#################################################################"
-    #    nix develop\
-    #      --option system ${{ inputs.nix_system }}\
-    #      --extra-platforms ${{ inputs.nix_system }}\
-    #      --accept-flake-config\
-    #      .#devShells.${{ inputs.nix_system }}.dev --command\
-    #      pytest --step-rx '.' --pdk-root="${{ inputs.pdk_root }}" -n auto
+          .#packages.${{ inputs.nix_system }}.cace -- --version

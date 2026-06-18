@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 {
+  flake ? null,
   stdenv,
   lib,
   nix-gitignore,
@@ -46,24 +47,10 @@ let
     format = "pyproject";
 
     version_file = builtins.readFile ./cace/__version__.py;
-    version_list = builtins.match ''.+''\n__version__ = '([^']+)'.+''\n.+''$'' version_file;
+    version_list = builtins.match ''.+''\n__version__ = "([^"]+)".+''\n.+''$'' version_file;
     version = builtins.head version_list;
 
-    src = [
-      ./README.md
-      ./pyproject.toml
-      (nix-gitignore.gitignoreSourcePure "__pycache__" ./cace)
-      ./requirements.txt
-    ];
-
-    unpackPhase = ''
-      echo $src
-      for file in $src; do
-        BASENAME=$(python3 -c "import os; print('$file'.split('-', maxsplit=1)[1], end='$EMPTY')")
-        cp -r $file $PWD/$BASENAME
-      done
-      ls -lah
-    '';
+    src = if (flake != null) then flake else nix-gitignore.gitignoreSourcePure ./.gitignore ./.;
 
     buildInputs = [
       setuptools

@@ -33,7 +33,7 @@ This method installs CACE with PIP from [PyPI](https://pypi.org/project/cace/). 
 
 You'll need the following:
 
-- [Python 3.8 or higher](https://www.python.org/) with PIP and Tkinter
+- [Python 3.10 or higher](https://www.python.org/) with PIP
 
 Install CACE with PIP:
 
