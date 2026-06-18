@@ -18,38 +18,36 @@ from tkinter import ttk
 class Settings(tkinter.Toplevel):
     """characterization tool settings management."""
 
-    def __init__(
-        self, parent=None, fontsize=11, callback=None, *args, **kwargs
-    ):
+    def __init__(self, parent=None, fontsize=11, callback=None, *args, **kwargs):
         """See the __init__ for Tkinter.Toplevel."""
         tkinter.Toplevel.__init__(self, parent, *args, **kwargs)
 
-        self.protocol('WM_DELETE_WINDOW', self.close)
+        self.protocol("WM_DELETE_WINDOW", self.close)
         self.parent = parent
         self.withdraw()
-        self.title('Characterization Tool Settings')
+        self.title("Characterization Tool Settings")
         self.sframe = tkinter.Frame(self)
-        self.sframe.grid(column=0, row=0, sticky='news')
+        self.sframe.grid(column=0, row=0, sticky="news")
 
         self.sframe.stitle = ttk.Label(
-            self.sframe, style='title.TLabel', text='Settings'
+            self.sframe, style="title.TLabel", text="Settings"
         )
-        self.sframe.stitle.pack(side='top', fill='x', expand='true')
-        self.sframe.sbar = ttk.Separator(self.sframe, orient='horizontal')
-        self.sframe.sbar.pack(side='top', fill='x', expand='true')
+        self.sframe.stitle.pack(side="top", fill="x", expand="true")
+        self.sframe.sbar = ttk.Separator(self.sframe, orient="horizontal")
+        self.sframe.sbar.pack(side="top", fill="x", expand="true")
 
         self.dodebug = tkinter.IntVar(self.sframe)
         self.dodebug.set(0)
         self.sframe.debug = ttk.Checkbutton(
-            self.sframe, text='Print debug output', variable=self.dodebug
+            self.sframe, text="Print debug output", variable=self.dodebug
         )
-        self.sframe.debug.pack(side='top', anchor='w')
+        self.sframe.debug.pack(side="top", anchor="w")
 
         self.doforce = tkinter.IntVar(self.sframe)
         self.doforce.set(0)
         self.sframe.force = ttk.Checkbutton(
             self.sframe,
-            text='Force netlist regeneration',
+            text="Force netlist regeneration",
             variable=self.doforce,
         )
         # self.sframe.force.pack(side = 'top', anchor = 'w')
@@ -58,86 +56,84 @@ class Settings(tkinter.Toplevel):
         self.doedit.set(0)
         self.sframe.edit = ttk.Checkbutton(
             self.sframe,
-            text='Allow edit of all parameters',
+            text="Allow edit of all parameters",
             variable=self.doedit,
         )
-        self.sframe.edit.pack(side='top', anchor='w')
+        self.sframe.edit.pack(side="top", anchor="w")
 
         self.dosequential = tkinter.IntVar(self.sframe)
         self.dosequential.set(0)
         self.sframe.seq = ttk.Checkbutton(
             self.sframe,
-            text='Simulate single-threaded',
+            text="Simulate single-threaded",
             variable=self.dosequential,
         )
-        self.sframe.seq.pack(side='top', anchor='w')
+        self.sframe.seq.pack(side="top", anchor="w")
 
         self.dokeep = tkinter.IntVar(self.sframe)
         self.dokeep.set(0)
         self.sframe.keep = ttk.Checkbutton(
-            self.sframe, text='Keep simulation files', variable=self.dokeep
+            self.sframe, text="Keep simulation files", variable=self.dokeep
         )
-        self.sframe.keep.pack(side='top', anchor='w')
+        self.sframe.keep.pack(side="top", anchor="w")
 
         self.noplot = tkinter.IntVar(self.sframe)
         self.noplot.set(0)
         self.sframe.plot = ttk.Checkbutton(
-            self.sframe, text='Do not create plot files', variable=self.noplot
+            self.sframe, text="Do not create plot files", variable=self.noplot
         )
-        self.sframe.plot.pack(side='top', anchor='w')
+        self.sframe.plot.pack(side="top", anchor="w")
 
         self.doschem = tkinter.IntVar(self.sframe)
         self.doschem.set(0)
         self.sframe.schem = ttk.Checkbutton(
             self.sframe,
-            text='Force characterization as schematic only',
+            text="Force characterization as schematic only",
             variable=self.doschem,
         )
-        self.sframe.schem.pack(side='top', anchor='w')
+        self.sframe.schem.pack(side="top", anchor="w")
 
         self.dolog = tkinter.IntVar(self.sframe)
         self.dolog.set(0)
         self.sframe.log = ttk.Checkbutton(
-            self.sframe, text='Log simulation output', variable=self.dolog
+            self.sframe, text="Log simulation output", variable=self.dolog
         )
-        self.sframe.log.pack(side='top', anchor='w')
+        self.sframe.log.pack(side="top", anchor="w")
 
-        parallel_parameters = (
-            self.parent.parameter_manager.get_runtime_options(
-                'parallel_parameters'
-            )
+        parallel_parameters = self.parent.parameter_manager.get_runtime_options(
+            "parallel_parameters"
         )
         self.sframe.ppframe = ttk.Frame(self.sframe)
         vcmd = (
             self.register(self.validate),
-            '%d',
-            '%i',
-            '%P',
-            '%s',
-            '%S',
-            '%v',
-            '%V',
-            '%W',
+            "%d",
+            "%i",
+            "%P",
+            "%s",
+            "%S",
+            "%v",
+            "%V",
+            "%W",
         )
         self.ppframe_entry = ttk.Entry(
-            self.sframe.ppframe, width=2, validate='key', validatecommand=vcmd
+            self.sframe.ppframe, width=2, validate="key", validatecommand=vcmd
         )
         self.ppframe_entry.insert(0, parallel_parameters)
         self.ppframe_label = ttk.Label(
-            self.sframe.ppframe, text='Max parallel parameters'
+            self.sframe.ppframe, text="Max parallel parameters"
         )
 
         self.ppframe_entry.grid(column=0, row=0)
         self.ppframe_label.grid(column=1, row=0)
 
-        self.sframe.ppframe.pack(side='top', anchor='w')
+        self.sframe.ppframe.pack(side="top", anchor="w")
 
         # self.sframe.sdisplay.sopts(side = 'top', fill = 'x', expand = 'true')
 
         self.bbar = ttk.Frame(self)
-        self.bbar.grid(column=0, row=1, sticky='news')
+        self.bbar.grid(column=0, row=1, sticky="news")
         self.bbar.close_button = ttk.Button(
-            self.bbar, text='Close', command=self.close, style='normal.TButton'
+            self.bbar, text="Close", command=self.close, style="normal.TButton"
         )
         self.bbar.close_button.grid(column=0, row=0, padx=5)
 
@@ -156,8 +152,8 @@ class Settings(tkinter.Toplevel):
         widget_name,
     ):
         # action=1 -> insert
-        if action == '1':
-            if text in '0123456789':
+        if action == "1":
+            if text in "0123456789":
                 try:
                     return int(value_if_allowed) > 0
                 except ValueError:

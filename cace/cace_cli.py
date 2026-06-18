@@ -54,27 +54,27 @@ from .parameter.parameter import ResultType
 
 
 def start_parameter(param, progress, task_ids, steps):
-    pname = param['name']
+    pname = param["name"]
     # Add a new task for the parameter
     task_ids[pname] = progress.add_task(
-        param['display'] if 'display' in param else pname,
+        param["display"] if "display" in param else pname,
     )
     # Set total amount of steps
     progress.update(task_ids[pname], total=steps)
 
 
 def step_parameter(param, progress, task_ids):
-    pname = param['name']
+    pname = param["name"]
 
     if pname in task_ids:
         # Update task for parameter
         progress.update(task_ids[pname], advance=1)
     else:
-        warn('Step update for non existing parameter.')
+        warn("Step update for non existing parameter.")
 
 
 def end_parameter(param, progress, task_ids, task_id):
-    pname = param['name']
+    pname = param["name"]
     if pname in task_ids:
         # Remove task for parameter
         progress.remove_task(task_ids[pname])
@@ -82,7 +82,7 @@ def end_parameter(param, progress, task_ids, task_id):
         # Update the main progress bar
         progress.update(task_id, advance=1)
     else:
-        warn('Cannot remove non existing parameter.')
+        warn("Cannot remove non existing parameter.")
 
 
 def cli():
@@ -94,107 +94,107 @@ def cli():
     """
 
     parser = argparse.ArgumentParser(
-        prog='cace',
+        prog="cace",
         description="""This program parses the CACE characterization 
         file, runs simulations, and can output a modified file annotated with 
         characterization results.""",
-        epilog='Online documentation at: https://cace.readthedocs.io/',
+        epilog="Online documentation at: https://cace.readthedocs.io/",
     )
 
     # version number
     parser.add_argument(
-        '--version', action='version', version=f'%(prog)s {__version__}'
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
 
     # positional argument, optional
     parser.add_argument(
-        'datasheet', nargs='?', help='input specification datasheet (YAML)'
+        "datasheet", nargs="?", help="input specification datasheet (YAML)"
     )
 
     # positional argument, optional
     parser.add_argument(
-        'output',
-        nargs='?',
-        help='output specification datasheet (YAML), used to convert a datasheet to a newer format',
+        "output",
+        nargs="?",
+        help="output specification datasheet (YAML), used to convert a datasheet to a newer format",
     )
 
     # total number of jobs, optional
     parser.add_argument(
-        '-j',
-        '--jobs',
+        "-j",
+        "--jobs",
         type=int,
         help="""maximum number of jobs running in parallel""",
     )
     parser.add_argument(
-        '-s',
-        '--source',
+        "-s",
+        "--source",
         type=str,
-        choices=['schematic', 'layout', 'pex', 'rcx', 'best'],
-        default='best',
+        choices=["schematic", "layout", "pex", "rcx", "best"],
+        default="best",
         help="""choose the netlist source for characterization. By default, or when using \'best\', characterization is run on the full R-C
     parasitic extracted netlist if the layout is available, else on the schematic captured netlist.""",
     )
     parser.add_argument(
-        '-p',
-        '--parameter',
-        nargs='+',
+        "-p",
+        "--parameter",
+        nargs="+",
         default=None,
-        help='run simulations on only the named parameters, by default run all parameters. Has support for wildcards (*) to match parts of parameters.',
+        help="run simulations on only the named parameters, by default run all parameters. Has support for wildcards (*) to match parts of parameters.",
     )
     parser.add_argument(
-        '-sp',
-        '--skip-parameter',
-        nargs='+',
+        "-sp",
+        "--skip-parameter",
+        nargs="+",
         default=None,
-        help='list parameters that should be skipped. Has support for wildcards (*) to match parts of parameters.',
+        help="list parameters that should be skipped. Has support for wildcards (*) to match parts of parameters.",
     )
     parser.add_argument(
-        '--parallel-parameters',
+        "--parallel-parameters",
         type=int,
         default=4,
-        help='the maximum number of parameters running in parallel',
+        help="the maximum number of parameters running in parallel",
     )
     parser.add_argument(
-        '-f',
-        '--force',
-        action='store_true',
-        help='force new regeneration of all netlists',
+        "-f",
+        "--force",
+        action="store_true",
+        help="force new regeneration of all netlists",
     )
     parser.add_argument(
-        '--max-runs',
+        "--max-runs",
         type=lambda value: int(value) if int(value) > 0 else 1,
         help="""the maximum number of runs to keep in the "runs/" folder, the oldest runs will be deleted""",
     )
     parser.add_argument(
-        '--run-path',
+        "--run-path",
         type=str,
         help='override the default "runs/" directory',
     )
     parser.add_argument(
-        '--no-plot', action='store_true', help='do not generate any graphs'
+        "--no-plot", action="store_true", help="do not generate any graphs"
     )
     parser.add_argument(
-        '-l',
-        '--log-level',
+        "-l",
+        "--log-level",
         type=str,
-        choices=['ALL', 'DEBUG', 'INFO', 'WARNING', 'ERROR'],
-        default='INFO',
+        choices=["ALL", "DEBUG", "INFO", "WARNING", "ERROR"],
+        default="INFO",
         help="""set the log level for a more fine-grained output""",
     )
     parser.add_argument(
-        '--sequential',
-        action='store_true',
-        help='runs simulations sequentially',
+        "--sequential",
+        action="store_true",
+        help="runs simulations sequentially",
     )
     parser.add_argument(
-        '--no-progress-bar',
-        action='store_true',
-        help='do not display the progress bar',
+        "--no-progress-bar",
+        action="store_true",
+        help="do not display the progress bar",
     )
     parser.add_argument(
-        '--nofail',
-        action='store_true',
-        help='do not fail on any errors or failing parameters',
+        "--nofail",
+        action="store_true",
+        help="do not fail on any errors or failing parameters",
     )
 
     # Parse arguments
@@ -224,34 +224,34 @@ def cli():
 
     # Log warnings and errors to files
     handlers: List[logging.Handler] = []
-    for level in ['WARNING', 'ERROR']:
-        path = os.path.join(parameter_manager.run_dir, f'{level.lower()}.log')
-        handler = logging.FileHandler(path, mode='a+')
+    for level in ["WARNING", "ERROR"]:
+        path = os.path.join(parameter_manager.run_dir, f"{level.lower()}.log")
+        handler = logging.FileHandler(path, mode="a+")
         handler.setLevel(level)
         handler.addFilter(LevelFilter([level]))
         handlers.append(handler)
         register_additional_handler(handler)
 
     # Log everything to a file
-    path = os.path.join(parameter_manager.run_dir, 'flow.log')
-    handler = logging.FileHandler(path, mode='a+')
-    handler.setLevel('VERBOSE')
+    path = os.path.join(parameter_manager.run_dir, "flow.log")
+    handler = logging.FileHandler(path, mode="a+")
+    handler.setLevel("VERBOSE")
     handlers.append(handler)
     register_additional_handler(handler)
 
     # Set runtime options
-    parameter_manager.set_runtime_options('force', args.force)
-    parameter_manager.set_runtime_options('noplot', args.no_plot)
-    parameter_manager.set_runtime_options('nosim', False)
-    parameter_manager.set_runtime_options('sequential', args.sequential)
-    parameter_manager.set_runtime_options('netlist_source', args.source)
+    parameter_manager.set_runtime_options("force", args.force)
+    parameter_manager.set_runtime_options("noplot", args.no_plot)
+    parameter_manager.set_runtime_options("nosim", False)
+    parameter_manager.set_runtime_options("sequential", args.sequential)
+    parameter_manager.set_runtime_options("netlist_source", args.source)
     parameter_manager.set_runtime_options(
-        'parallel_parameters', args.parallel_parameters
+        "parallel_parameters", args.parallel_parameters
     )
 
     # Create the progress bar
     progress = Progress(
-        TextColumn('[progress.description]{task.description}'),
+        TextColumn("[progress.description]{task.description}"),
         BarColumn(),
         MofNCompleteColumn(),
         TimeElapsedColumn(),
@@ -262,7 +262,7 @@ def cli():
     # Add a single task for all parameters
     progress.start()
     task_id = progress.add_task(
-        'Running Parameters',
+        "Running Parameters",
     )
     task_ids = {}
 
@@ -277,7 +277,7 @@ def cli():
 
     # Queue specified parameters
     if args.parameter:
-        dbg(f'Queuing parameters: {args.parameter}')
+        dbg(f"Queuing parameters: {args.parameter}")
 
         for pname in args.parameter:
             # Directly queue a parameter name
@@ -285,12 +285,10 @@ def cli():
                 queued_pnames.append(pname)
             # Try to match pattern
             else:
-                match_pnames = [
-                    _pname for _pname in pnames if fnmatch(_pname, pname)
-                ]
+                match_pnames = [_pname for _pname in pnames if fnmatch(_pname, pname)]
 
                 if not match_pnames:
-                    err(f'{pname} does not match any parameters.')
+                    err(f"{pname} does not match any parameters.")
                     err(f'Known parameters are: {", ".join(pnames)}')
                     sys.exit(1)
 
@@ -302,7 +300,7 @@ def cli():
 
     # Skip specified parameters
     if args.skip_parameter:
-        dbg(f'Skipping parameters: {args.skip_parameter}')
+        dbg(f"Skipping parameters: {args.skip_parameter}")
 
         for pname in args.skip_parameter:
             # Directly remove a parameter name
@@ -311,13 +309,11 @@ def cli():
             # Try to match pattern
             else:
                 match_pnames = [
-                    _pname
-                    for _pname in queued_pnames
-                    if fnmatch(_pname, pname)
+                    _pname for _pname in queued_pnames if fnmatch(_pname, pname)
                 ]
 
                 if not match_pnames:
-                    err(f'{pname} does not match any queued parameters.')
+                    err(f"{pname} does not match any queued parameters.")
                     err(f'Queued parameters are: {", ".join(queued_pnames)}')
                     sys.exit(1)
 
@@ -325,14 +321,14 @@ def cli():
                     queued_pnames.remove(match_pname)
 
     if not queued_pnames:
-        err('No parameters specified to run.')
+        err("No parameters specified to run.")
         sys.exit(1)
 
     info(f'Running parameters: {", ".join(queued_pnames)}')
 
     for queued_pname in queued_pnames:
         if not queued_pname in pnames:
-            err(f'Unknown parameter {queued_pname}.')
+            err(f"Unknown parameter {queued_pname}.")
             err(f'Known parameters are: {", ".join(pnames)}')
             sys.exit(1)
 
@@ -343,12 +339,8 @@ def cli():
                 param, progress, task_ids, steps
             ),
             step_cb=lambda param: step_parameter(param, progress, task_ids),
-            cancel_cb=lambda param: end_parameter(
-                param, progress, task_ids, task_id
-            ),
-            end_cb=lambda param: end_parameter(
-                param, progress, task_ids, task_id
-            ),
+            cancel_cb=lambda param: end_parameter(param, progress, task_ids, task_id),
+            end_cb=lambda param: end_parameter(param, progress, task_ids, task_id),
         )
 
     # Set the total number of parameters in the progress bar
@@ -373,17 +365,15 @@ def cli():
     progress.stop()
 
     # Get the runtime and print it
-    delta = str(timedelta(seconds=time.time() - timestamp_start)).split('.')[0]
-    info(f'Done with CACE simulations and evaluations in {delta}.')
+    delta = str(timedelta(seconds=time.time() - timestamp_start)).split(".")[0]
+    info(f"Done with CACE simulations and evaluations in {delta}.")
 
     # Print the summary to the console
     summary = parameter_manager.summarize_datasheet()
     console.print(Markdown(summary))
 
     # Save the summary
-    with open(
-        os.path.join(parameter_manager.run_dir, 'summary.md'), 'w'
-    ) as ofile:
+    with open(os.path.join(parameter_manager.run_dir, "summary.md"), "w") as ofile:
         ofile.write(summary)
 
     for registered_handlers in handlers:
@@ -409,7 +399,7 @@ def cli():
     if returncode == 0 or args.nofail:
         parameter_manager.generate_documentation()
     else:
-        info(f'CACE failed, skipping documentation generation.')
+        info(f"CACE failed, skipping documentation generation.")
 
     # Exit with final status
     if args.nofail:
@@ -418,5 +408,5 @@ def cli():
         sys.exit(returncode)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

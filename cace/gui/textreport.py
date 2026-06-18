@@ -24,43 +24,35 @@ class TextReport(tkinter.Toplevel):
         """See the __init__ for Tkinter.Toplevel."""
         tkinter.Toplevel.__init__(self, parent, *args, **kwargs)
 
-        self.protocol('WM_DELETE_WINDOW', self.close)
+        self.protocol("WM_DELETE_WINDOW", self.close)
 
         self.withdraw()
-        self.title('Open Galaxy Text Report')
+        self.title("Open Galaxy Text Report")
 
-        self.texttitle = ttk.Label(
-            self, style='title.TLabel', text='(no text)'
-        )
-        self.texttitle.grid(column=0, row=0, sticky='news')
-        self.textbar = ttk.Separator(self, orient='horizontal')
-        self.textbar.grid(column=0, row=1, sticky='news')
+        self.texttitle = ttk.Label(self, style="title.TLabel", text="(no text)")
+        self.texttitle.grid(column=0, row=0, sticky="news")
+        self.textbar = ttk.Separator(self, orient="horizontal")
+        self.textbar.grid(column=0, row=1, sticky="news")
 
         self.hframe = tkinter.Frame(self)
-        self.hframe.grid(column=0, row=2, sticky='news')
+        self.hframe.grid(column=0, row=2, sticky="news")
         self.hframe.textdisplay = ttk.Frame(self.hframe)
-        self.hframe.textdisplay.pack(side='left', fill='both', expand='true')
+        self.hframe.textdisplay.pack(side="left", fill="both", expand="true")
         self.hframe.textdisplay.page = tkinter.Text(
-            self.hframe.textdisplay, wrap='word'
+            self.hframe.textdisplay, wrap="word"
         )
-        self.hframe.textdisplay.page.pack(
-            side='top', fill='both', expand='true'
-        )
+        self.hframe.textdisplay.page.pack(side="top", fill="both", expand="true")
         # Add scrollbar to text window
         self.hframe.scrollbar = ttk.Scrollbar(self.hframe)
-        self.hframe.scrollbar.pack(side='right', fill='y')
+        self.hframe.scrollbar.pack(side="right", fill="y")
         # attach text window to scrollbar
-        self.hframe.textdisplay.page.config(
-            yscrollcommand=self.hframe.scrollbar.set
-        )
-        self.hframe.scrollbar.config(
-            command=self.hframe.textdisplay.page.yview
-        )
+        self.hframe.textdisplay.page.config(yscrollcommand=self.hframe.scrollbar.set)
+        self.hframe.scrollbar.config(command=self.hframe.textdisplay.page.yview)
 
         self.bbar = ttk.Frame(self)
-        self.bbar.grid(column=0, row=3, sticky='news')
+        self.bbar.grid(column=0, row=3, sticky="news")
         self.bbar.close_button = ttk.Button(
-            self.bbar, text='Close', command=self.close, style='normal.TButton'
+            self.bbar, text="Close", command=self.close, style="normal.TButton"
         )
         self.bbar.close_button.grid(column=0, row=0, padx=5)
 
@@ -72,15 +64,15 @@ class TextReport(tkinter.Toplevel):
 
         # Initialize with empty page
         self.text = []
-        self.title = '(No file to display)'
+        self.title = "(No file to display)"
         self.timestamp = 0
 
     def grid_configure(self, padx, pady):
         pass
 
-    def display(self, filename=''):
+    def display(self, filename=""):
         # Read from file if text is empty
-        if filename != '':
+        if filename != "":
             if filename == self.title:
                 statbuf = os.stat(filename)
                 if self.text == [] or self.timestamp < statbuf.st_mtime:
@@ -90,16 +82,16 @@ class TextReport(tkinter.Toplevel):
                 self.add_text_from_file(filename)
 
         # Remove and replace contents
-        self.hframe.textdisplay.page.delete('1.0', 'end')
-        self.hframe.textdisplay.page.insert('end', self.text)
+        self.hframe.textdisplay.page.delete("1.0", "end")
+        self.hframe.textdisplay.page.insert("end", self.text)
         self.texttitle.configure(text=self.title)
         self.open()
 
     # Fill the text report from a file.
 
     def add_text_from_file(self, filename):
-        print('Loading text from file ' + filename)
-        with open(filename, 'r') as f:
+        print("Loading text from file " + filename)
+        with open(filename, "r") as f:
             self.text = f.read()
         self.title = filename
         self.display()

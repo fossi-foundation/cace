@@ -33,9 +33,9 @@ def get_pdk(magicfilename=None):
     """
 
     try:
-        pdk = os.environ['PDK']
+        pdk = os.environ["PDK"]
     except KeyError:
-        error('PDK is not defined in the environment.')
+        error("PDK is not defined in the environment.")
         pdk = None
 
     return pdk
@@ -50,28 +50,26 @@ def get_pdk_root():
     """
 
     try:
-        pdk_root = os.environ['PDK_ROOT']
+        pdk_root = os.environ["PDK_ROOT"]
     except KeyError:
         # Try a few common places where open_pdks might be installed
-        pdk_root = '/usr/local/share/pdk'
+        pdk_root = "/usr/local/share/pdk"
         if not os.path.isdir(pdk_root):
-            pdk_root = '/usr/share/pdk'
+            pdk_root = "/usr/share/pdk"
             if not os.path.isdir(pdk_root):
-                pdk_root = '/foss/pdks'
+                pdk_root = "/foss/pdks"
                 if not os.path.isdir(pdk_root):
-                    pdk_root = os.path.join(os.path.expanduser('~'), '.ciel')
+                    pdk_root = os.path.join(os.path.expanduser("~"), ".ciel")
                     if not os.path.isdir(pdk_root):
-                        pdk_root = os.path.join(
-                            os.path.expanduser('~'), '.volare'
-                        )
+                        pdk_root = os.path.join(os.path.expanduser("~"), ".volare")
                         if not os.path.isdir(pdk_root):
                             pdk_root = None
 
         if pdk_root:
-            os.environ['PDK_ROOT'] = pdk_root
+            os.environ["PDK_ROOT"] = pdk_root
         else:
             error(
-                'PDK_ROOT is not defined in the environment and could not automatically locate PDK_ROOT.'
+                "PDK_ROOT is not defined in the environment and could not automatically locate PDK_ROOT."
             )
 
     return pdk_root
@@ -89,9 +87,7 @@ def get_magic_rcfile():
     pdk_root = get_pdk_root()
     pdk = get_pdk()
 
-    rcfile = os.path.join(
-        pdk_root, pdk, 'libs.tech', 'magic', pdk + '.magicrc'
-    )
+    rcfile = os.path.join(pdk_root, pdk, "libs.tech", "magic", pdk + ".magicrc")
 
     return rcfile
 
@@ -99,60 +95,60 @@ def get_magic_rcfile():
 def get_layout_path(projname, paths, check_magic=False):
 
     # Prefer magic layout
-    if check_magic and 'magic' in paths:
-        layout_path = paths['magic']
-        layout_filename = projname + '.mag'
+    if check_magic and "magic" in paths:
+        layout_path = paths["magic"]
+        layout_filename = projname + ".mag"
         layout_filepath = os.path.join(layout_path, layout_filename)
 
-        dbg(f'Trying to find magic layout {layout_filepath}.')
+        dbg(f"Trying to find magic layout {layout_filepath}.")
 
         # Check if magic layout exists
         if os.path.isfile(layout_filepath):
 
-            dbg(f'Found magic layout {layout_filepath}!')
+            dbg(f"Found magic layout {layout_filepath}!")
 
             # Return magic layout
             return (layout_filepath, True)
 
-        dbg('No magic layout found.')
+        dbg("No magic layout found.")
 
     # Else use GDSII
-    if 'layout' in paths:
-        layout_path = paths['layout']
-        layout_filename = projname + '.gds'
+    if "layout" in paths:
+        layout_path = paths["layout"]
+        layout_filename = projname + ".gds"
         layout_filepath = os.path.join(layout_path, layout_filename)
 
-        dbg(f'Trying to find GDS layout {layout_filepath}.')
+        dbg(f"Trying to find GDS layout {layout_filepath}.")
 
         # Check if GDS layout exists
         if os.path.exists(layout_filepath):
 
-            dbg(f'Found GDS layout {layout_filepath}!')
+            dbg(f"Found GDS layout {layout_filepath}!")
 
             # Return GDS layout
             return (layout_filepath, False)
 
-        dbg('No GDS layout found.')
-        dbg('Trying to find compressed GDS layout.')
+        dbg("No GDS layout found.")
+        dbg("Trying to find compressed GDS layout.")
 
-        layout_path = paths['layout']
-        layout_filename = projname + '.gds.gz'
+        layout_path = paths["layout"]
+        layout_filename = projname + ".gds.gz"
         layout_filepath = os.path.join(layout_path, layout_filename)
 
         # Check if compressed GDS layout exists
         if os.path.exists(layout_filepath):
 
-            dbg(f'Found compressed GDS layout {layout_filepath}!')
+            dbg(f"Found compressed GDS layout {layout_filepath}!")
 
             # Return compressed GDS layout
             return (layout_filepath, False)
 
-        dbg('No compressed GDS layout found.')
+        dbg("No compressed GDS layout found.")
 
     if check_magic:
-        err('Neither magic nor (compressed) GDS layout found.')
+        err("Neither magic nor (compressed) GDS layout found.")
     else:
-        err('No (compressed) GDS layout found.')
+        err("No (compressed) GDS layout found.")
 
     return (None, None)
 
@@ -169,9 +165,7 @@ def get_klayout_techfile():
     pdk_root = get_pdk_root()
     pdk = get_pdk()
 
-    techfile = os.path.join(
-        pdk_root, pdk, 'libs.tech', 'klayout', 'tech', pdk + '.lyt'
-    )
+    techfile = os.path.join(pdk_root, pdk, "libs.tech", "klayout", "tech", pdk + ".lyt")
 
     return techfile
 
@@ -188,13 +182,11 @@ def get_klayout_layer_props():
     pdk_root = get_pdk_root()
     pdk = get_pdk()
 
-    techfile = os.path.join(
-        pdk_root, pdk, 'libs.tech', 'klayout', 'tech', pdk + '.lyp'
-    )
+    techfile = os.path.join(pdk_root, pdk, "libs.tech", "klayout", "tech", pdk + ".lyp")
     # Why oh why ihp-sg13g2
     if not os.path.isfile(techfile):
         techfile = os.path.join(
-            pdk_root, pdk, 'libs.tech', 'klayout', 'tech', 'sg13g2.lyp'
+            pdk_root, pdk, "libs.tech", "klayout", "tech", "sg13g2.lyp"
         )
 
     return techfile
@@ -212,9 +204,7 @@ def get_netgen_setupfile():
     pdk_root = get_pdk_root()
     pdk = get_pdk()
 
-    setupfile = os.path.join(
-        pdk_root, pdk, 'libs.tech', 'netgen', pdk + '_setup.tcl'
-    )
+    setupfile = os.path.join(pdk_root, pdk, "libs.tech", "netgen", pdk + "_setup.tcl")
 
     return setupfile
 
@@ -238,32 +228,32 @@ def set_xschem_paths(datasheet, symbolpath, tclstr=None):
     netlist directory.
     """
 
-    paths = datasheet['paths']
+    paths = datasheet["paths"]
 
     # Root path
-    if 'root' in paths:
-        root_path = paths['root']
+    if "root" in paths:
+        root_path = paths["root"]
     else:
-        root_path = '.'
+        root_path = "."
 
     # List of tcl commands to string together to make up the full
     # string argument to pass to xschem.
 
     tcllist = []
-    if tclstr and tclstr != '':
+    if tclstr and tclstr != "":
         tcllist.append(tclstr)
 
     # Add the root path to the search path (may not be necessary but covers
     # cases where schematics have been specified from the project root for
     # either the testbench or schematic directories, or both).
 
-    tcllist.append('append XSCHEM_LIBRARY_PATH :' + os.path.abspath(root_path))
+    tcllist.append("append XSCHEM_LIBRARY_PATH :" + os.path.abspath(root_path))
 
     # Add the path with the DUT symbol to the search path.  Note that testbenches
     # use a version of the DUT symbol that is marked as "primitive" so that it
     # does not get added to the netlist directly.  The netlist is included by a
     # ".include" statement in the testbenches.
-    tcllist.append('append XSCHEM_LIBRARY_PATH :' + symbolpath)
+    tcllist.append("append XSCHEM_LIBRARY_PATH :" + symbolpath)
 
     # If dependencies are declared, then pull in their locations
     # and add them to the search path as well.
@@ -274,35 +264,30 @@ def set_xschem_paths(datasheet, symbolpath, tclstr=None):
     # determines schematic paths from the dependent repository's own
     # CACE definition file.
 
-    if 'dependencies' in datasheet:
+    if "dependencies" in datasheet:
         # If there is only one dependency it may be a dictionary and not a
         # list of dictionaries.
-        if isinstance(datasheet['dependencies'], dict):
-            dependencies = [datasheet['dependencies']]
+        if isinstance(datasheet["dependencies"], dict):
+            dependencies = [datasheet["dependencies"]]
         else:
-            dependencies = datasheet['dependencies']
+            dependencies = datasheet["dependencies"]
 
         for dependency in dependencies:
-            if 'path' in dependency and 'name' in dependency:
+            if "path" in dependency and "name" in dependency:
                 dependdir = os.path.join(
-                    dependency['path'], dependency['name'], 'xschem'
+                    dependency["path"], dependency["name"], "xschem"
                 )
                 if not os.path.isdir(dependdir):
-                    dependdir = os.path.join(
-                        dependency['path'], dependency['name']
-                    )
+                    dependdir = os.path.join(dependency["path"], dependency["name"])
                     if not os.path.isdir(dependdir):
-                        err(
-                            'Cannot find xschem library in '
-                            + dependency['name']
-                        )
-                        err('Current directory is: ' + os.getcwd())
-                        err('Dependdir is: ' + dependdir)
+                        err("Cannot find xschem library in " + dependency["name"])
+                        err("Current directory is: " + os.getcwd())
+                        err("Dependdir is: " + dependdir)
                         dependdir = None
                 if dependdir:
-                    tcllist.append('append XSCHEM_LIBRARY_PATH :' + dependdir)
+                    tcllist.append("append XSCHEM_LIBRARY_PATH :" + dependdir)
 
-    return ' ; '.join(tcllist)
+    return " ; ".join(tcllist)
 
 
 def xschem_generate_svg(schempath, svgpath):
@@ -313,7 +298,7 @@ def xschem_generate_svg(schempath, svgpath):
     """
 
     if not os.path.isfile(schempath):
-        err(f'Could not find {schempath}.')
+        err(f"Could not find {schempath}.")
         return 1
 
     # Xschem arguments:
@@ -322,11 +307,11 @@ def xschem_generate_svg(schempath, svgpath):
     # -q:  Quit after processing command line
 
     xschemargs = [
-        '-r',
-        '-x',
-        '-q',
-        '--svg',
-        '--plotfile',
+        "-r",
+        "-x",
+        "-q",
+        "--svg",
+        "--plotfile",
         svgpath,
     ]
 
@@ -334,30 +319,26 @@ def xschem_generate_svg(schempath, svgpath):
     pdk = get_pdk()
 
     # See if there is an xschemrc file  we can source
-    xschemrcfile = os.path.join(os.path.split(schempath)[0], 'xschemrc')
+    xschemrcfile = os.path.join(os.path.split(schempath)[0], "xschemrc")
     if os.path.isfile(xschemrcfile):
-        xschemargs.extend(['--rcfile', xschemrcfile])
+        xschemargs.extend(["--rcfile", xschemrcfile])
     else:
-        warn(f'No project xschemrc file found at: {xschemrcfile}')
-        warn(
-            f'It is highly recommended to set up an xschemrc file for your project.'
-        )
+        warn(f"No project xschemrc file found at: {xschemrcfile}")
+        warn(f"It is highly recommended to set up an xschemrc file for your project.")
 
         # Use the PDK xschemrc file for xschem startup
-        xschemrcfile = os.path.join(
-            pdk_root, pdk, 'libs.tech', 'xschem', 'xschemrc'
-        )
-        warn(f'Using the PDK xschemrc instead…')
+        xschemrcfile = os.path.join(pdk_root, pdk, "libs.tech", "xschem", "xschemrc")
+        warn(f"Using the PDK xschemrc instead…")
         if os.path.isfile(xschemrcfile):
-            xschemargs.extend(['--rcfile', xschemrcfile])
+            xschemargs.extend(["--rcfile", xschemrcfile])
         else:
-            err(f'No xschemrc file found in the {pdk} PDK!')
+            err(f"No xschemrc file found in the {pdk} PDK!")
 
     xschemargs.append(schempath)
 
-    dbg('Generating SVG using xschem.')
+    dbg("Generating SVG using xschem.")
 
-    returncode = run_subprocess('xschem', xschemargs, write_file=False)
+    returncode = run_subprocess("xschem", xschemargs, write_file=False)
 
     if returncode != 0:
         return 1
@@ -373,7 +354,7 @@ def magic_generate_svg(layout_path, svgpath):
     """
 
     if not os.path.isfile(layout_path):
-        err(f'Could not find {layout_path}.')
+        err(f"Could not find {layout_path}.")
         return 1
 
     layout_directory = os.path.split(layout_path)[0]
@@ -383,23 +364,23 @@ def magic_generate_svg(layout_path, svgpath):
 
     rcfile = get_magic_rcfile()
 
-    magic_input = ''
+    magic_input = ""
 
-    magic_input += f'addpath {os.path.abspath(layout_directory)}\n'
-    if layout_extension == '.mag':
-        magic_input += f'load {layout_filename}\n'
-    elif layout_extension == '.gds':
-        magic_input += f'gds read {layout_filename}\n'
-        magic_input += f'load {layout_cellname}\n'
+    magic_input += f"addpath {os.path.abspath(layout_directory)}\n"
+    if layout_extension == ".mag":
+        magic_input += f"load {layout_filename}\n"
+    elif layout_extension == ".gds":
+        magic_input += f"gds read {layout_filename}\n"
+        magic_input += f"load {layout_cellname}\n"
     else:
-        err(f'Unknown file extension for: {layout_path}')
+        err(f"Unknown file extension for: {layout_path}")
         return 1
 
-    magic_input += f'plot svg {svgpath}\n'
+    magic_input += f"plot svg {svgpath}\n"
 
     returncode = run_subprocess(
-        'magic',
-        ['-noconsole', '-d XR', '-rcfile', rcfile],
+        "magic",
+        ["-noconsole", "-d XR", "-rcfile", rcfile],
         input=magic_input,
         write_file=False,
     )
@@ -418,11 +399,11 @@ def klayout_generate_png(layout_filepath, out_path, out_name):
     """
 
     if layout_filepath == None:
-        err(f'No layout found.')
+        err(f"No layout found.")
         return 1
 
     if not os.path.isfile(layout_filepath):
-        err(f'Could not find {layout_filepath}.')
+        err(f"Could not find {layout_filepath}.")
         return 1
 
     layout_directory = os.path.dirname(layout_filepath)
@@ -432,10 +413,10 @@ def klayout_generate_png(layout_filepath, out_path, out_name):
     layer_props = get_klayout_layer_props()
     pdk = get_pdk()
 
-    if pdk == 'sky130A':
-        tech_name = 'sky130'
-    elif pdk == 'sky130B':
-        tech_name = 'sky130'
+    if pdk == "sky130A":
+        tech_name = "sky130"
+    elif pdk == "sky130B":
+        tech_name = "sky130"
     else:
         tech_name = pdk
 
@@ -480,9 +461,9 @@ lv.save_image_with_options(os.path.join(out_path, out_name + "_w.png"), w, h, 0,
 lv.set_config("background-color", background_black)
 lv.save_image_with_options(os.path.join(out_path, out_name + "_b.png"), w, h, 0, 0, 0, bbox, False)"""
 
-    scriptpath = 'klayout_script.py'
+    scriptpath = "klayout_script.py"
 
-    with open(scriptpath, 'w') as f:
+    with open(scriptpath, "w") as f:
         f.write(klayout_script)
 
     # -b: batch mode
@@ -491,23 +472,23 @@ lv.save_image_with_options(os.path.join(out_path, out_name + "_b.png"), w, h, 0,
     # -rd <name>=<value>: script variable
 
     returncode = run_subprocess(
-        'klayout',
+        "klayout",
         [
-            '-b',
-            '-nn',
+            "-b",
+            "-nn",
             techfile,
-            '-r',
+            "-r",
             scriptpath,
-            '-rd',
-            f'gds_path={layout_filepath}',
-            '-rd',
-            f'out_path={out_path}',
-            '-rd',
-            f'out_name={out_name}',
-            '-rd',
-            f'tech_name={tech_name}',
-            '-rd',
-            f'layer_props={layer_props}',
+            "-rd",
+            f"gds_path={layout_filepath}",
+            "-rd",
+            f"out_path={out_path}",
+            "-rd",
+            f"out_name={out_name}",
+            "-rd",
+            f"tech_name={tech_name}",
+            "-rd",
+            f"layer_props={layer_props}",
         ],
         write_file=False,
     )
@@ -565,8 +546,8 @@ def logseq(start, stop, step):
 
 
 def bindigits(n, bits):
-    s = bin(n & int('1' * bits, 2))[2:]
-    return ('{0:0>%s}' % (bits)).format(s)
+    s = bin(n & int("1" * bits, 2))[2:]
+    return ("{0:0>%s}" % (bits)).format(s)
 
 
 # -----------------------------------------------------------------------
@@ -575,11 +556,9 @@ def bindigits(n, bits):
 
 
 def twos_comp(val, bits):
-    if (
-        val & (1 << (bits - 1))
-    ) != 0:   # if sign bit is set e.g., 8bit: 128-255
-        val = val - (1 << bits)        # compute negative value
-    return val                         # return positive value as is
+    if (val & (1 << (bits - 1))) != 0:  # if sign bit is set e.g., 8bit: 128-255
+        val = val - (1 << bits)  # compute negative value
+    return val  # return positive value as is
 
 
 # -----------------------------------------------------------------------
@@ -589,8 +568,8 @@ def twos_comp(val, bits):
 
 def bcount(condition, unit, start, stop, step):
     blen = len(start)
-    a = safe_eval('0b' + start)
-    e = safe_eval('0b' + stop)
+    a = safe_eval("0b" + start)
+    e = safe_eval("0b" + stop)
     if a > e:
         a = twos_comp(a, blen)
         e = twos_comp(e, blen)
@@ -611,8 +590,8 @@ def bcount(condition, unit, start, stop, step):
 
 
 def bshift(condition, unit, start, stop, step):
-    a = safe_eval('0b' + start)
-    e = safe_eval('0b' + stop)
+    a = safe_eval("0b" + start)
+    e = safe_eval("0b" + stop)
     if a > e:
         a = twos_comp(a, blen)
         e = twos_comp(e, blen)
@@ -639,10 +618,10 @@ def bshift(condition, unit, start, stop, step):
 def get_condition_names_used(template):
 
     if not os.path.isfile(template):
-        err('No such template file ' + template)
+        err("No such template file " + template)
         return
 
-    with open(template, 'r') as ifile:
+    with open(template, "r") as ifile:
         simtext = ifile.read()
 
     simlines = simtext.splitlines()
@@ -650,10 +629,10 @@ def get_condition_names_used(template):
 
     # Regular expressions
     # varex:		variable name {name}
-    varex = re.compile(r'\{([^ \}\t]+)\}')
+    varex = re.compile(r"\{([^ \}\t]+)\}")
 
     # Vectors in name[number|range] format
-    vectrex = re.compile(r'([^\[]+)\[([0-9:]+)\]')
+    vectrex = re.compile(r"([^\[]+)\[([0-9:]+)\]")
 
     # List for {cond=value} syntax
     default_cond = {}
@@ -663,28 +642,26 @@ def get_condition_names_used(template):
             pattern = patmatch.group(1)
 
             # For condition names in the form {cond=value}, use only the name
-            if '=' in pattern:
-                (pattern, default) = pattern.split('=')
+            if "=" in pattern:
+                pattern, default = pattern.split("=")
                 # Add the default value
                 default_cond[pattern] = default
 
             # For condition names in the form {cond|value}, use only the name
-            if '|' in pattern:
-                pstart = pattern.split('|')[0]
-                if pstart != 'PIN' and pstart != 'FUNCTIONAL':
+            if "|" in pattern:
+                pstart = pattern.split("|")[0]
+                if pstart != "PIN" and pstart != "FUNCTIONAL":
                     pattern = pstart
 
             pmatch = vectrex.match(pattern)
             if pmatch:
-                pattern = pmatch.group(1) + '['
+                pattern = pmatch.group(1) + "["
             condlist[pattern] = True
 
     return (condlist, default_cond)
 
 
-def run_subprocess(
-    proc, args=[], env=None, input=None, cwd=None, write_file=True
-):
+def run_subprocess(proc, args=[], env=None, input=None, cwd=None, write_file=True):
 
     if not cwd:
         cwd = os.getcwd()
@@ -704,41 +681,37 @@ def run_subprocess(
     ) as process:
 
         if input != None:
-            dbg(f'input: {input}')
+            dbg(f"input: {input}")
         stdout, stderr = process.communicate(input)
         returncode = process.returncode
 
         if returncode != 0:
-            err(f'Subprocess exited with error code {returncode}')
+            err(f"Subprocess exited with error code {returncode}")
 
         # Print stderr
         if stderr and returncode != 0:
-            err('Error output generated by subprocess:')
+            err("Error output generated by subprocess:")
             for line in stderr.splitlines():
-                err(line.rstrip('\n'))
+                err(line.rstrip("\n"))
         else:
-            dbg('Error output generated by subprocess:')
+            dbg("Error output generated by subprocess:")
             for line in stderr.splitlines():
-                dbg(line.rstrip('\n'))
+                dbg(line.rstrip("\n"))
 
         # Write stderr to file
         if stderr and write_file:
-            with open(
-                f'{os.path.join(cwd, proc)}_stderr.out', 'w'
-            ) as stderr_file:
+            with open(f"{os.path.join(cwd, proc)}_stderr.out", "w") as stderr_file:
                 stderr_file.write(stderr)
 
         # Print stdout
         if stdout:
-            dbg(f'Output from subprocess {proc}:')
+            dbg(f"Output from subprocess {proc}:")
             for line in stdout.splitlines():
                 dbg(line.rstrip())
 
         # Write stdout to file
         if stdout and write_file:
-            with open(
-                f'{os.path.join(cwd, proc)}_stdout.out', 'w'
-            ) as stdout_file:
+            with open(f"{os.path.join(cwd, proc)}_stdout.out", "w") as stdout_file:
                 stdout_file.write(stdout)
 
     return returncode

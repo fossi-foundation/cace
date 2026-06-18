@@ -31,10 +31,12 @@ from typing import (
     get_args,
 )
 
+
 def is_optional(t: Type[Any]) -> bool:
     type_args = get_args(t)
     origin = get_origin(t)
     return (origin is Union or origin is types.UnionType) and type(None) in type_args
+
 
 def some_of(t: Type[Any]) -> Type[Any]:
     if not is_optional(t):
@@ -59,6 +61,7 @@ def some_of(t: Type[Any]) -> Type[Any]:
     # Otherwise, return a typing.Union
     new_union = Union[tuple(args_without_none)]  # type: ignore
     return new_union  # type: ignore
+
 
 def repr_type(t: Type[Any], for_document: bool = False) -> str:  # pragma: no cover
     optional = is_optional(t)
@@ -94,6 +97,7 @@ def repr_type(t: Type[Any], for_document: bool = False) -> str:  # pragma: no co
 
     return type_string + ("?" if optional else "")
 
+
 @dataclass
 class Result:
     """
@@ -104,7 +108,7 @@ class Result:
     type: Any
     description: str
     default: Any = None
-    
+
     units: Optional[str] = None
 
     def type_repr_md(self, for_document: bool = False) -> str:  # pragma: no cover
@@ -141,12 +145,10 @@ class Result:
         include_units = any(c.units is not None for c in vars)
         if myst_anchor_owner_id is None:
             # Markdown mode
-            result = textwrap.dedent(
-                f"""
+            result = textwrap.dedent(f"""
                 | Variable Name | Type | Description | {'Units |' * include_units}
                 | - | - | - | {'- |' * include_units}
-                """
-            )
+                """)
             for var in vars:
                 units = var.units or ""
                 result += f"| `{var.name}` | {var.type_repr_md(for_document=True)} | {var.desc_repr_md()} |"
@@ -159,8 +161,7 @@ class Result:
                 # for _get_docs_identifier, where None is the behavior we want
                 # for a literal ""
                 myst_anchor_owner_id = None
-            result = textwrap.dedent(
-                f"""
+            result = textwrap.dedent(f"""
                 <div class="table-wrapper colwidths-auto docutils container">
                 <table class="docutils align-default">
                 <thead><tr>
@@ -170,21 +171,17 @@ class Result:
                 {'<th class="head">Units</th>' * include_units}
                 </tr></thead>
                 <tbody>
-                """
-            )
+                """)
             for var in vars:
                 units = var.units or ""
 
-                result += textwrap.dedent(
-                    f"""
+                result += textwrap.dedent(f"""
                     <tr>
                     <td>
 
                     `{var.name}`
-                    """
-                )
-                result += textwrap.dedent(
-                    f"""
+                    """)
+                result += textwrap.dedent(f"""
                     </td>
                     <td>
 
@@ -196,17 +193,14 @@ class Result:
                     {var.desc_repr_md()}
 
                     </td>
-                    """
-                )
-                result += include_units * textwrap.dedent(
-                    f"""
+                    """)
+                result += include_units * textwrap.dedent(f"""
                     <td>
 
                     {units}
 
                     </td>
-                    """
-                )
+                    """)
                 result += "\n</tr>"
             result += "</tbody></table></div>\n"
         return result

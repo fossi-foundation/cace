@@ -36,7 +36,7 @@ class LogLevels(IntEnum):
 
 console = rich.console.Console()
 atexit.register(lambda: rich.console.Console().show_cursor())
-__event_logger: logging.Logger = logging.getLogger('__cace__')
+__event_logger: logging.Logger = logging.getLogger("__cace__")
 
 
 class options:
@@ -68,14 +68,14 @@ class NullFormatter(logging.Formatter):
 class LevelFormatter(logging.Formatter):
     def format(self, record):
         message = record.getMessage()
-        if record.levelname == 'WARNING':
-            message = f'[yellow]{message}'
-        elif record.levelname == 'ERROR':
-            message = f'[red]{message}'
-        elif record.levelname == 'CRITICAL':
-            message = f'[red][bold]{message}'
+        if record.levelname == "WARNING":
+            message = f"[yellow]{message}"
+        elif record.levelname == "ERROR":
+            message = f"[red]{message}"
+        elif record.levelname == "CRITICAL":
+            message = f"[red][bold]{message}"
         else:
-            message = f'{message}'
+            message = f"{message}"
         return message
 
 
@@ -88,12 +88,12 @@ class RichHandler(rich.logging.RichHandler):
             return super().get_level_text(record)
         level_name = record.levelname
         style: StyleType
-        if level_name == 'WARNING':
-            style = Style(color='yellow', bold=True)
+        if level_name == "WARNING":
+            style = Style(color="yellow", bold=True)
         else:
-            style = f'logging.level.{level_name.lower()}'
+            style = f"logging.level.{level_name.lower()}"
         level_text = Text.styled(
-            f'[{level_name[0]}]',
+            f"[{level_name[0]}]",
             style,
         )
         return level_text
@@ -122,7 +122,7 @@ class LevelFilter(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:
         if options.get_condensed_mode():
-            if record.levelname == 'SUBPROCESS':
+            if record.levelname == "SUBPROCESS":
                 return False
         if self.invert:
             return record.levelname not in self.levels
@@ -152,7 +152,7 @@ def initialize_logger():
         keywords=[],
         markup=False,
     )
-    subprocess_handler.addFilter(LevelFilter(['SUBPROCESS']))
+    subprocess_handler.addFilter(LevelFilter(["SUBPROCESS"]))
 
     rich_handler = RichHandler(
         console=console,
@@ -165,10 +165,10 @@ def initialize_logger():
         show_level=True,
         keywords=[],
     )
-    rich_handler.setFormatter(LevelFormatter('%(message)s', datefmt='[%X]'))
-    rich_handler.addFilter(LevelFilter(['SUBPROCESS'], invert=True))
+    rich_handler.setFormatter(LevelFormatter("%(message)s", datefmt="[%X]"))
+    rich_handler.addFilter(LevelFilter(["SUBPROCESS"], invert=True))
 
-    logger = logging.getLogger('__cace__')
+    logger = logging.getLogger("__cace__")
     logger.setLevel(LogLevels.SUBPROCESS)
 
     logger.handlers.clear()
@@ -214,7 +214,7 @@ def reset_log_level():
     Sets the log level of the default CACE logger back to the
     default log level.
     """
-    set_log_level('SUBPROCESS')
+    set_log_level("SUBPROCESS")
 
 
 def get_log_level() -> int:
@@ -230,8 +230,8 @@ def dbg(*args, **kwargs):
 
     :param msg: The message to log
     """
-    if kwargs.get('stacklevel') is None:
-        kwargs['stacklevel'] = 2
+    if kwargs.get("stacklevel") is None:
+        kwargs["stacklevel"] = 2
     __event_logger.debug(*args, **kwargs)
 
 
@@ -239,8 +239,8 @@ def verbose(*args, **kwargs):
     """
     Logs to the CACE logger with the log level VERBOSE.
     """
-    if kwargs.get('stacklevel') is None:
-        kwargs['stacklevel'] = 2
+    if kwargs.get("stacklevel") is None:
+        kwargs["stacklevel"] = 2
     __event_logger.log(
         LogLevels.VERBOSE,
         *args,
@@ -254,8 +254,8 @@ def info(msg: object, /, **kwargs):
 
     :param msg: The message to log
     """
-    if kwargs.get('stacklevel') is None:
-        kwargs['stacklevel'] = 2
+    if kwargs.get("stacklevel") is None:
+        kwargs["stacklevel"] = 2
     __event_logger.info(msg, **kwargs)
 
 
@@ -265,12 +265,12 @@ def subproc(msg: object, /, **kwargs):
 
     :param msg: The message to log
     """
-    if kwargs.get('stacklevel') is None:
-        kwargs['stacklevel'] = 2
+    if kwargs.get("stacklevel") is None:
+        kwargs["stacklevel"] = 2
     __event_logger.log(LogLevels.SUBPROCESS, msg, **kwargs)
 
 
-def rule(title: str = '', /, **kwargs):  # pragma: no cover
+def rule(title: str = "", /, **kwargs):  # pragma: no cover
     """
     Prints a horizontal line on the terminal enclosing the first argument
     if the log level is <= INFO.
@@ -288,9 +288,9 @@ def success(msg: object, /, **kwargs):
 
     :param msg: The message to log
     """
-    if kwargs.get('stacklevel') is None:
-        kwargs['stacklevel'] = 2
-    __event_logger.info(f'{msg}', **kwargs)
+    if kwargs.get("stacklevel") is None:
+        kwargs["stacklevel"] = 2
+    __event_logger.info(f"{msg}", **kwargs)
 
 
 def warn(msg: object, /, **kwargs):
@@ -299,9 +299,9 @@ def warn(msg: object, /, **kwargs):
 
     :param msg: The message to log
     """
-    if kwargs.get('stacklevel') is None:
-        kwargs['stacklevel'] = 2
-    __event_logger.warning(f'{msg}', **kwargs)
+    if kwargs.get("stacklevel") is None:
+        kwargs["stacklevel"] = 2
+    __event_logger.warning(f"{msg}", **kwargs)
 
 
 def err(msg: object, /, **kwargs):
@@ -310,19 +310,19 @@ def err(msg: object, /, **kwargs):
 
     :param msg: The message to log
     """
-    if kwargs.get('stacklevel') is None:
-        kwargs['stacklevel'] = 2
-    __event_logger.error(f'{msg}', **kwargs)
+    if kwargs.get("stacklevel") is None:
+        kwargs["stacklevel"] = 2
+    __event_logger.error(f"{msg}", **kwargs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     initialize_logger()
-    debug('Debug')
-    verbose('Verbose')
-    subprocess('Subprocess')
-    rule('Rule')
-    info('Info')
-    success('Success')
-    warn('Warn')
-    err('Err')
-    print('\n')
+    debug("Debug")
+    verbose("Verbose")
+    subprocess("Subprocess")
+    rule("Rule")
+    info("Info")
+    success("Success")
+    warn("Warn")
+    err("Err")
+    print("\n")

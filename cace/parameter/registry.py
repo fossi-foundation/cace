@@ -22,6 +22,7 @@ def register_parameter(name=None):
 
     return inner
 
+
 def register_tool(name=None):
     def inner(cls):
         if name:
@@ -32,24 +33,26 @@ def register_tool(name=None):
 
     return inner
 
+
 def get_tools(category=None):
     tools = []
 
     if category:
         for tool in registered_tools.values:
-            if tool.name.split('.')[0] == category:
+            if tool.name.split(".")[0] == category:
                 tools += tool
     else:
         tools = registered_tools
 
     return tools
 
+
 def find_tool(name):
     if name in registered_tools:
         return registered_tools[name]
-    
+
     for tool in registered_tools.values:
         if tool.name == name:
             return tool
-    
+
     return None

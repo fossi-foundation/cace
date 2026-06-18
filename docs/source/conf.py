@@ -15,35 +15,33 @@ import os
 sys.path.insert(0, os.path.abspath("../_ext"))
 
 # CACE
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath("../.."))
 from cace import __version__
 
 # -- Project information -----------------------------------------------------
 
-project = 'CACE'
-copyright = '2026, CACE Contributors'
-author = 'Tim Edwards, Leo Moser'
+project = "CACE"
+copyright = "2026, CACE Contributors"
+author = "Tim Edwards, Leo Moser"
 release = __version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 custom_extensions = [
-    'generate_docs',
+    "generate_docs",
 ]
-third_party_extensions = [
-    'myst_parser'
-]
+third_party_extensions = ["myst_parser"]
 extensions = third_party_extensions + custom_extensions
 
 source_suffix = {
-    '.md': 'markdown',
-    '.rst': 'restructuredtext',
+    ".md": "markdown",
+    ".rst": "restructuredtext",
 }
 
 root_doc = "index"
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -62,9 +60,9 @@ exclude_patterns = [
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-html_title = 'CACE Documentation'
-html_theme = 'furo'
-html_static_path = ['_static']
+html_title = "CACE Documentation"
+html_theme = "furo"
+html_static_path = ["_static"]
 
 # Auto-generated header anchors.
 # https://myst-parser.readthedocs.io/en/stable/syntax/optional.html#syntax-header-anchors

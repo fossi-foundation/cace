@@ -73,19 +73,19 @@ class ResultType(Enum):
 
     def __str__(self):
         if self.value == ResultType.UNKNOWN.value:
-            return 'Unknown ❓'
+            return "Unknown ❓"
         elif self.value == ResultType.ERROR.value:
-            return 'Error ❗'
+            return "Error ❗"
         elif self.value == ResultType.SUCCESS.value:
-            return 'Pass ✅'
+            return "Pass ✅"
         elif self.value == ResultType.FAILURE.value:
-            return 'Fail ❌'
+            return "Fail ❌"
         elif self.value == ResultType.SKIPPED.value:
-            return 'Skip 🟧'
+            return "Skip 🟧"
         elif self.value == ResultType.CANCELED.value:
-            return 'Cancel 🟧'
+            return "Cancel 🟧"
         else:
-            return '???'
+            return "???"
 
 
 class NamedResult:
@@ -99,22 +99,23 @@ class NamedResult:
         self.values = []
         # Maximum/minimum/median of the values
         self.result = {
-            'minimum': None,
-            'typical': None,
-            'maximum': None,
+            "minimum": None,
+            "typical": None,
+            "maximum": None,
         }
         # 'pass' or 'fail'
         self.status = {
-            'minimum': None,
-            'typical': None,
-            'maximum': None,
+            "minimum": None,
+            "typical": None,
+            "maximum": None,
         }
 
     def __repr__(self):
-        return f'{self.name} with values {self.values}'
+        return f"{self.name} with values {self.values}"
 
     def __str__(self):
-        return f'{self.name} with values {self.values}'
+        return f"{self.name} with values {self.values}"
+
 
 class Condition:
     def __init__(self):
@@ -126,10 +127,10 @@ class Condition:
         self.values = []
 
     def __repr__(self):
-        return f'{self.name} with spec {self.spec} and values {self.values}'
+        return f"{self.name} with spec {self.spec} and values {self.values}"
 
     def __str__(self):
-        return f'{self.name} {self.description} {self.display} {self.unit} {self.spec} {self.values}'
+        return f"{self.name} {self.description} {self.display} {self.unit} {self.spec} {self.values}"
 
     def generate_values(self):
         self.values = [val for val in self.condition_gen()]
@@ -139,54 +140,50 @@ class Condition:
         Define a generator for conditions.
         """
 
-        if 'enumerate' in self.spec:
-            for i in self.spec['enumerate']:
+        if "enumerate" in self.spec:
+            for i in self.spec["enumerate"]:
                 yield i
 
-        if 'step' in self.spec:
-            if not 'minimum' in self.spec or not 'maximum' in self.spec:
-                err(
-                    f'Step specified in condition, but no minimum/maximum: {self}'
-                )
+        if "step" in self.spec:
+            if not "minimum" in self.spec or not "maximum" in self.spec:
+                err(f"Step specified in condition, but no minimum/maximum: {self}")
 
-            if 'typical' in self.spec:
-                yield self.spec['typical']
+            if "typical" in self.spec:
+                yield self.spec["typical"]
 
             # Linear step
-            if self.spec['step'] == 'linear':
+            if self.spec["step"] == "linear":
                 stepsize = 1
-                if 'stepsize' in self.spec:
-                    stepsize = float(self.spec['stepsize'])
+                if "stepsize" in self.spec:
+                    stepsize = float(self.spec["stepsize"])
 
                 yield from linseq(
-                    float(self.spec['minimum']),
-                    float(self.spec['maximum']),
+                    float(self.spec["minimum"]),
+                    float(self.spec["maximum"]),
                     stepsize,
                 )
 
             # Logarithmic step
-            elif self.spec['step'] == 'logarithmic':
+            elif self.spec["step"] == "logarithmic":
                 stepsize = 2
-                if 'stepsize' in self.spec:
-                    stepsize = float(self.spec['stepsize'])
+                if "stepsize" in self.spec:
+                    stepsize = float(self.spec["stepsize"])
 
                 yield from logseq(
-                    float(self.spec['minimum']),
-                    float(self.spec['maximum']),
+                    float(self.spec["minimum"]),
+                    float(self.spec["maximum"]),
                     stepsize,
                 )
 
             else:
-                err(
-                    f'Unknown step type {self.spec["step"]} in condition: {self}'
-                )
+                err(f'Unknown step type {self.spec["step"]} in condition: {self}')
         else:
-            if 'minimum' in self.spec:
-                yield self.spec['minimum']
-            if 'typical' in self.spec:
-                yield self.spec['typical']
-            if 'maximum' in self.spec:
-                yield self.spec['maximum']
+            if "minimum" in self.spec:
+                yield self.spec["minimum"]
+            if "typical" in self.spec:
+                yield self.spec["typical"]
+            if "maximum" in self.spec:
+                yield self.spec["maximum"]
 
 
 class Parameter(ABC, Thread):
@@ -195,16 +192,16 @@ class Parameter(ABC, Thread):
     """
 
     # Vectors in name[number|range] format
-    vectrex = re.compile(r'([^\[]+)\[([0-9:]+)\]')
-    
+    vectrex = re.compile(r"([^\[]+)\[([0-9:]+)\]")
+
     # Class Variables
     id: str = NotImplemented
     config_vars: ClassVar[List[Variable]] = []
     config_results: ClassVar[List[Result]] = []
-    
+
     # Instance Variables
     name: str
-    
+
     @classmethod
     def __get_desc(Self) -> str:  # pragma: no cover
         if hasattr(Self, "long_name"):
@@ -212,7 +209,7 @@ class Parameter(ABC, Thread):
         elif hasattr(Self, "name"):
             return Self.name
         return Self.__name__
-    
+
     @classmethod
     def get_help_md(
         Self,
@@ -227,43 +224,35 @@ class Parameter(ABC, Thread):
         doc_string = docstring_override
         if Self.__doc__:
             doc_string = textwrap.dedent(Self.__doc__)
-        
+
         result = f"ID: `{Self.id}`\n" + doc_string
-        
+
         if len(Self.config_vars):
             config_var_anchors = f"({Self.id.lower()}-configuration-variables)="
-            result += textwrap.dedent(
-                f"""
+            result += textwrap.dedent(f"""
                 {config_var_anchors * myst_anchors}
                 #### Configuration Variables
-                """
-            )
+                """)
             result += Variable._render_table_md(
                 Self.config_vars, myst_anchor_owner_id=Self.id if myst_anchors else None
             )
 
         if len(Self.config_results):
             config_result_anchors = f"({Self.id.lower()}-configuration-results)="
-            result += textwrap.dedent(
-                f"""
+            result += textwrap.dedent(f"""
                 {config_result_anchors * myst_anchors}
                 #### Results
-                """
-            )
+                """)
             result += Result._render_table_md(
-                Self.config_results, myst_anchor_owner_id=Self.id if myst_anchors else None
+                Self.config_results,
+                myst_anchor_owner_id=Self.id if myst_anchors else None,
             )
 
         step_anchor = f"(step-{slugify(Self.id.lower())})="
-        result = (
-            textwrap.dedent(
-                f"""
+        result = textwrap.dedent(f"""
                 {step_anchor * myst_anchors}
                 ### {Self.__get_desc()}
-                """
-            )
-            + result
-        )
+                """) + result
 
         return result
 
@@ -308,11 +297,11 @@ class Parameter(ABC, Thread):
         self.subproc_handle = None
 
         self.param_dir = os.path.abspath(
-            os.path.join(self.run_dir, 'parameters', pname)
+            os.path.join(self.run_dir, "parameters", pname)
         )
 
         # Get the name of the tool and input
-        tool = self.param['tool']
+        tool = self.param["tool"]
         if isinstance(tool, str):
             self.toolname = tool
             self.tooldict = None
@@ -321,10 +310,10 @@ class Parameter(ABC, Thread):
             self.tooldict = tool[self.toolname]
 
         self.results_dict = {}
-        
+
         for result in self.config_results:
             self.add_result(NamedResult(result.name))
-        
+
         self.plots_dict = {}
         self.result_type = ResultType.UNKNOWN
 
@@ -343,7 +332,7 @@ class Parameter(ABC, Thread):
         return None
 
     def cancel(self, no_cb):
-        info(f'Parameter {self.pname}: Canceled.')
+        info(f"Parameter {self.pname}: Canceled.")
         self.canceled = True
 
         if self.subproc_handle:
@@ -434,41 +423,37 @@ class Parameter(ABC, Thread):
             self.subproc_handle = process
 
             if input != None:
-                dbg(f'input: {input}')
+                dbg(f"input: {input}")
             stdout, stderr = process.communicate(input)
             returncode = process.returncode
 
             if returncode != 0:
-                err(f'Subprocess exited with error code {returncode}')
+                err(f"Subprocess exited with error code {returncode}")
 
             # Print stderr
             if stderr and returncode != 0:
-                err('Error output generated by subprocess:')
+                err("Error output generated by subprocess:")
                 for line in stderr.splitlines():
-                    err(line.rstrip('\n'))
+                    err(line.rstrip("\n"))
             else:
-                dbg('Error output generated by subprocess:')
+                dbg("Error output generated by subprocess:")
                 for line in stderr.splitlines():
-                    dbg(line.rstrip('\n'))
+                    dbg(line.rstrip("\n"))
 
             # Write stderr to file
             if stderr:
-                with open(
-                    f'{os.path.join(cwd, proc)}_stderr.out', 'w'
-                ) as stderr_file:
+                with open(f"{os.path.join(cwd, proc)}_stderr.out", "w") as stderr_file:
                     stderr_file.write(stderr)
 
             # Print stdout
             if stdout:
-                dbg(f'Output from subprocess {proc}:')
+                dbg(f"Output from subprocess {proc}:")
                 for line in stdout.splitlines():
                     dbg(line.rstrip())
 
             # Write stdout to file
             if stdout:
-                with open(
-                    f'{os.path.join(cwd, proc)}_stdout.out', 'w'
-                ) as stdout_file:
+                with open(f"{os.path.join(cwd, proc)}_stdout.out", "w") as stdout_file:
                     stdout_file.write(stdout)
 
         self.subproc_handle = None
@@ -478,25 +463,25 @@ class Parameter(ABC, Thread):
     def evaluate_result(self):
 
         defaults = {
-            'minimum': {
-                'fail': True,
-                'calculation': 'minimum',
-                'limit': 'above',
+            "minimum": {
+                "fail": True,
+                "calculation": "minimum",
+                "limit": "above",
             },
-            'typical': {
-                'fail': False,
-                'calculation': 'median',
-                'limit': 'exact',
+            "typical": {
+                "fail": False,
+                "calculation": "median",
+                "limit": "exact",
             },
-            'maximum': {
-                'fail': True,
-                'calculation': 'maximum',
-                'limit': 'below',
+            "maximum": {
+                "fail": True,
+                "calculation": "maximum",
+                "limit": "below",
             },
         }
 
         # For each named result in the spec
-        for named_result in self.param['spec']:
+        for named_result in self.param["spec"]:
 
             if not self.get_result(named_result):
                 err(f'No result "{named_result}" available.')
@@ -504,25 +489,24 @@ class Parameter(ABC, Thread):
                 continue
 
             # For each entry in the specs
-            for entry in ['minimum', 'typical', 'maximum']:
+            for entry in ["minimum", "typical", "maximum"]:
 
-                if entry in self.param['spec'][named_result]:
-                    value = self.param['spec'][named_result][entry]['value']
+                if entry in self.param["spec"][named_result]:
+                    value = self.param["spec"][named_result][entry]["value"]
                     fail = (
-                        self.param['spec'][named_result][entry]['fail']
-                        if 'fail' in self.param['spec'][named_result][entry]
-                        else defaults[entry]['fail']
+                        self.param["spec"][named_result][entry]["fail"]
+                        if "fail" in self.param["spec"][named_result][entry]
+                        else defaults[entry]["fail"]
                     )
                     calculation = (
-                        self.param['spec'][named_result][entry]['calculation']
-                        if 'calculation'
-                        in self.param['spec'][named_result][entry]
-                        else defaults[entry]['calculation']
+                        self.param["spec"][named_result][entry]["calculation"]
+                        if "calculation" in self.param["spec"][named_result][entry]
+                        else defaults[entry]["calculation"]
                     )
                     limit = (
-                        self.param['spec'][named_result][entry]['limit']
-                        if 'limit' in self.param['spec'][named_result][entry]
-                        else defaults[entry]['limit']
+                        self.param["spec"][named_result][entry]["limit"]
+                        if "limit" in self.param["spec"][named_result][entry]
+                        else defaults[entry]["limit"]
                     )
 
                     # Check if there are values for the named result
@@ -530,82 +514,74 @@ class Parameter(ABC, Thread):
                         values = self.get_result(named_result).values
 
                         # Calculate a single value from a vector
-                        if calculation == 'minimum':
+                        if calculation == "minimum":
                             result = min(values)
-                        elif calculation == 'maximum':
+                        elif calculation == "maximum":
                             result = max(values)
-                        elif calculation == 'median':
+                        elif calculation == "median":
                             result = median(values)
-                        elif calculation == 'average':
+                        elif calculation == "average":
                             result = mean(values)
                         else:
-                            err(f'Unknown calculation type: {calculation}')
+                            err(f"Unknown calculation type: {calculation}")
                     else:
                         err(f'Result "{named_result}" is empty.')
                         self.result_type = ResultType.ERROR
                         result = None
 
                     self.get_result(named_result).result[entry] = result
-                    dbg(
-                        f'Got {entry} result for {self.pname} {named_result}: {result}'
-                    )
+                    dbg(f"Got {entry} result for {self.pname} {named_result}: {result}")
 
-                    status = 'pass'
+                    status = "pass"
 
                     # Check result against a limit
-                    if value != 'any' and fail == True:
+                    if value != "any" and fail == True:
 
                         # Prefer the local unit
                         unit = (
-                            self.param['spec'][named_result]['unit']
-                            if 'unit' in self.param['spec'][named_result]
+                            self.param["spec"][named_result]["unit"]
+                            if "unit" in self.param["spec"][named_result]
                             else None
                         )
 
                         # Else use the global unit
                         if not unit:
-                            unit = (
-                                self.param['unit']
-                                if 'unit' in self.param
-                                else None
-                            )
+                            unit = self.param["unit"] if "unit" in self.param else None
 
                         # Scale value with unit
                         if unit:
-                            dbg(f'scaling {value} with {unit}')
+                            dbg(f"scaling {value} with {unit}")
                             value = spice_unit_convert(
                                 (
                                     str(unit),
                                     str(value),
                                 )
                             )
-                            dbg(f'result: {value}')
+                            dbg(f"result: {value}")
                         if result != None:
                             dbg(
-                                f'Checking result {result} against value {value} with limit {limit}.'
+                                f"Checking result {result} against value {value} with limit {limit}."
                             )
-                            if limit == 'above':
+                            if limit == "above":
                                 if result < float(value):
-                                    status = 'fail'
-                            elif limit == 'below':
+                                    status = "fail"
+                            elif limit == "below":
                                 if result > float(value):
-                                    status = 'fail'
-                            elif limit == 'exact':
+                                    status = "fail"
+                            elif limit == "exact":
                                 if result != float(value):
-                                    status = 'fail'
+                                    status = "fail"
                             else:
-                                err(f'Unknown limit type: {limit}')
+                                err(f"Unknown limit type: {limit}")
 
                     self.get_result(named_result).status[entry] = status
 
-                    dbg(
-                        f'Got {entry} status for {self.pname} {named_result}: {status}'
-                    )
+                    dbg(f"Got {entry} status for {self.pname} {named_result}: {status}")
 
             # Final checks for failure
-            for entry in ['minimum', 'typical', 'maximum']:
+            for entry in ["minimum", "typical", "maximum"]:
                 if self.get_result(named_result).result[entry]:
-                    if self.get_result(named_result).status[entry] == 'fail':
+                    if self.get_result(named_result).status[entry] == "fail":
                         # If any spec fails, fail the whole parameter
                         self.result_type = ResultType.FAILURE
 
@@ -613,7 +589,7 @@ class Parameter(ABC, Thread):
         # Get the global default conditions
         conditions_default = {}
 
-        for cond, spec in self.datasheet['default_conditions'].items():
+        for cond, spec in self.datasheet["default_conditions"].items():
             # Create new conditions
             new_cond = Condition()
 
@@ -625,11 +601,11 @@ class Parameter(ABC, Thread):
             new_cond.name = cond
 
             for key, value in spec.items():
-                if key == 'description':
+                if key == "description":
                     new_cond.description = value
-                elif key == 'display':
+                elif key == "display":
                     new_cond.display = value
-                elif key == 'unit':
+                elif key == "unit":
                     new_cond.unit = value
                 else:
                     new_cond.spec[key] = value
@@ -643,7 +619,7 @@ class Parameter(ABC, Thread):
         # Get the conditions for this parameter
         conditions_param = {}
 
-        for cond, spec in self.param['conditions'].items():
+        for cond, spec in self.param["conditions"].items():
             # Create new conditions
             new_cond = Condition()
 
@@ -655,11 +631,11 @@ class Parameter(ABC, Thread):
             new_cond.name = cond
 
             for key, value in spec.items():
-                if key == 'description':
+                if key == "description":
                     new_cond.description = value
-                elif key == 'display':
+                elif key == "display":
                     new_cond.display = value
-                elif key == 'unit':
+                elif key == "unit":
                     new_cond.unit = value
                 else:
                     new_cond.spec[key] = value
@@ -726,10 +702,10 @@ class Parameter(ABC, Thread):
         """
 
         if not os.path.isfile(template):
-            err(f'No such template file {template}.')
+            err(f"No such template file {template}.")
             return
 
-        with open(template, 'r') as ifile:
+        with open(template, "r") as ifile:
             simtext = ifile.read()
 
         simlines = simtext.splitlines()
@@ -737,15 +713,15 @@ class Parameter(ABC, Thread):
         # Regular expressions
         # varex:		variable name {name}
         if escape:
-            if self.datasheet['cace_format'] <= 5.0:
-                varex = re.compile(r'\\\{([^ \}\t]+)\\\}')
+            if self.datasheet["cace_format"] <= 5.0:
+                varex = re.compile(r"\\\{([^ \}\t]+)\\\}")
             else:
-                varex = re.compile(r'CACE\\\{([^ \}\t]+)\\\}')
+                varex = re.compile(r"CACE\\\{([^ \}\t]+)\\\}")
         else:
-            if self.datasheet['cace_format'] <= 5.0:
-                varex = re.compile(r'\{([^ \}\t]+)\}')
+            if self.datasheet["cace_format"] <= 5.0:
+                varex = re.compile(r"\{([^ \}\t]+)\}")
             else:
-                varex = re.compile(r'CACE\{([^ \}\t]+)\}')
+                varex = re.compile(r"CACE\{([^ \}\t]+)\}")
 
         conditions = {}
 
@@ -755,12 +731,12 @@ class Parameter(ABC, Thread):
                 default = None
 
                 # For condition names in the form {cond=value}, use only the name
-                if '=' in pattern:
-                    (pattern, default) = pattern.split('=')
+                if "=" in pattern:
+                    pattern, default = pattern.split("=")
 
                 # For condition names in the form {cond|value}, use only the name
-                if '|' in pattern:
-                    (pattern, cond_type) = pattern.split('|')
+                if "|" in pattern:
+                    pattern, cond_type = pattern.split("|")
 
                 # Remove any bit slices
                 pmatch = self.vectrex.match(pattern)
@@ -771,7 +747,7 @@ class Parameter(ABC, Thread):
                 new_cond = Condition()
                 new_cond.name = pattern
                 if default:
-                    new_cond.spec['typical'] = default
+                    new_cond.spec["typical"] = default
                 conditions[pattern] = new_cond
 
         return conditions
@@ -791,50 +767,50 @@ class Parameter(ABC, Thread):
         # brackrex:		expressions in [expression] format
 
         if escape:
-            if self.datasheet['cace_format'] <= 5.0:
-                varex = re.compile(r'\\\{([^\\\}]+)\\\}')
-                sweepex = re.compile(r'\\\{([^\\\}]+)\|([^ \\\}]+)\\\}')
-                brackrex = re.compile(r'\[([^\]]+)\]')
+            if self.datasheet["cace_format"] <= 5.0:
+                varex = re.compile(r"\\\{([^\\\}]+)\\\}")
+                sweepex = re.compile(r"\\\{([^\\\}]+)\|([^ \\\}]+)\\\}")
+                brackrex = re.compile(r"\[([^\]]+)\]")
             else:
-                varex = re.compile(r'CACE\\\{([^\\\}]+)\\\}')
-                sweepex = re.compile(r'CACE\\\{([^\\\}]+)\|([^ \\\}]+)\\\}')
-                brackrex = re.compile(r'CACE\[([^\]]+)\]')
+                varex = re.compile(r"CACE\\\{([^\\\}]+)\\\}")
+                sweepex = re.compile(r"CACE\\\{([^\\\}]+)\|([^ \\\}]+)\\\}")
+                brackrex = re.compile(r"CACE\[([^\]]+)\]")
         else:
-            if self.datasheet['cace_format'] <= 5.0:
-                varex = re.compile(r'\{([^\}]+)\}')
-                sweepex = re.compile(r'\{([^\}]+)\|([^ \}]+)\}')
-                brackrex = re.compile(r'\[([^\]]+)\]')
+            if self.datasheet["cace_format"] <= 5.0:
+                varex = re.compile(r"\{([^\}]+)\}")
+                sweepex = re.compile(r"\{([^\}]+)\|([^ \}]+)\}")
+                brackrex = re.compile(r"\[([^\]]+)\]")
             else:
-                varex = re.compile(r'CACE\{([^\}]+)\}')
-                sweepex = re.compile(r'CACE\{([^\}]+)\|([^ \}]+)\}')
-                brackrex = re.compile(r'CACE\[([^\]]+)\]')
+                varex = re.compile(r"CACE\{([^\}]+)\}")
+                sweepex = re.compile(r"CACE\{([^\}]+)\|([^ \}]+)\}")
+                brackrex = re.compile(r"CACE\[([^\]]+)\]")
 
         if not os.path.isfile(template_path):
-            err(f'Could not find template file {template_path}.')
+            err(f"Could not find template file {template_path}.")
             self.result_type = ResultType.ERROR
             return
 
         # Read template into a list
-        with open(template_path, 'r') as infile:
+        with open(template_path, "r") as infile:
             template_text = infile.read()
 
         # Concatenate any continuation lines
-        template_lines = template_text.replace('\n+', ' ').splitlines()
+        template_lines = template_text.replace("\n+", " ").splitlines()
 
         def varex_sub(matchobj):
             cond_name = matchobj.group(1)
-            dbg(f'Found condition: {cond_name}.')
+            dbg(f"Found condition: {cond_name}.")
 
             # For condition names in the form {cond=value}, use only the name
-            if '=' in cond_name:
-                (cond_name, default) = cond_name.split('=')
+            if "=" in cond_name:
+                cond_name, default = cond_name.split("=")
 
             # Check for bit slices
             indices = None
             pmatch = self.vectrex.match(cond_name)
             if pmatch:
                 cond_name = pmatch.group(1)
-                indices = pmatch.group(2).split(':')
+                indices = pmatch.group(2).split(":")
 
             # Check whether the condition is in the set
             if cond_name in conditions_set:
@@ -855,41 +831,32 @@ class Parameter(ABC, Thread):
                             # Convert number into binary first
                             length = int(indices[0]) + 1
                             binary = format(
-                                int(conditions_set[cond_name]), f'0{length}b'
+                                int(conditions_set[cond_name]), f"0{length}b"
                             )
                             end = len(binary)
                             replace = binary[end - 1 - int(indices[0])]
                         # Bit slice
                         elif len(indices) == 1:
                             # Convert number into binary first
-                            length = max(
-                                int(indices[0]) + 1, int(indices[1]) + 1
-                            )
+                            length = max(int(indices[0]) + 1, int(indices[1]) + 1)
                             binary = format(
-                                int(conditions_set[cond_name]), f'0{length}b'
+                                int(conditions_set[cond_name]), f"0{length}b"
                             )
                             end = len(binary)
                             replace = binary[
-                                end
-                                - 1
-                                - int(indices[0]) : end
-                                - int(indices[1])
+                                end - 1 - int(indices[0]) : end - int(indices[1])
                             ]
                         else:
-                            err(
-                                f'This bit slice is not supported: {matchobj.group(1)}'
-                            )
-                            return ''
+                            err(f"This bit slice is not supported: {matchobj.group(1)}")
+                            return ""
                     except:
-                        err(
-                            f"Can't extract bit from: {conditions_set[cond_name]}"
-                        )
-                        return ''
+                        err(f"Can't extract bit from: {conditions_set[cond_name]}")
+                        return ""
 
-                dbg(f'Replacing with {replace}.')
+                dbg(f"Replacing with {replace}.")
                 return replace
             else:
-                err(f'Could not find {cond_name} in condition set.')
+                err(f"Could not find {cond_name} in condition set.")
 
             # Error, do not change the condition value
             return matchobj.group(0)
@@ -897,24 +864,22 @@ class Parameter(ABC, Thread):
         def sweepex_sub(matchobj):
             cond_name = matchobj.group(1)
             cond_type = matchobj.group(2)
-            dbg(f'Found condition: {cond_name} with type {cond_type}.')
+            dbg(f"Found condition: {cond_name} with type {cond_type}.")
 
             if cond_name in conditions:
                 if cond_type in conditions[cond_name].spec:
                     replace = str(conditions[cond_name].spec[cond_type])
-                    dbg(f'Replacing with {replace}.')
+                    dbg(f"Replacing with {replace}.")
                     return replace
                 else:
-                    err(
-                        f'Could not find {cond_type} in {cond_name} in conditions.'
-                    )
+                    err(f"Could not find {cond_type} in {cond_name} in conditions.")
             else:
-                err(f'Could not find {cond_name} in conditions.')
-            return ''
+                err(f"Could not find {cond_name} in conditions.")
+            return ""
 
         def brackrex_sub(matchobj):
             expression = matchobj.group(1)
-            dbg(f'Found expression: {expression}.')
+            dbg(f"Found expression: {expression}.")
 
             try:
                 # Avoid catching simple array indexes like "v[0]".
@@ -928,7 +893,7 @@ class Parameter(ABC, Thread):
             try:
                 return str(safe_eval(expression))
             except:
-                err(f'Invalid expression: {expression}.')
+                err(f"Invalid expression: {expression}.")
             return matchobj.group(0)
 
         # Substitute values
@@ -947,9 +912,9 @@ class Parameter(ABC, Thread):
             substituted_lines.append(template_line)
 
         # Write the output file
-        with open(substituted_path, 'w') as outfile:
+        with open(substituted_path, "w") as outfile:
             for line in substituted_lines:
-                outfile.write(f'{line}\n')
+                outfile.write(f"{line}\n")
 
     def makeplot(
         self,
@@ -966,17 +931,17 @@ class Parameter(ABC, Thread):
         )
 
         if (
-            not 'yaxis' in self.param['plot'][plot_name]
-            and not 'xaxis' in self.param['plot'][plot_name]
+            not "yaxis" in self.param["plot"][plot_name]
+            and not "xaxis" in self.param["plot"][plot_name]
         ):
-            err(f'Neither yaxis nor xaxis specified in plot {plot_name}.')
+            err(f"Neither yaxis nor xaxis specified in plot {plot_name}.")
             self.result_type = ResultType.ERROR
             return None
 
         xvariable = None
-        if 'xaxis' in self.param['plot'][plot_name]:
+        if "xaxis" in self.param["plot"][plot_name]:
 
-            xvariable = self.param['plot'][plot_name]['xaxis']
+            xvariable = self.param["plot"][plot_name]["xaxis"]
 
             # Remove any bit slices
             pmatch = self.vectrex.match(xvariable)
@@ -984,11 +949,11 @@ class Parameter(ABC, Thread):
                 xvariable = pmatch.group(1)
 
         xdisplay = xvariable
-        xunit = ''
+        xunit = ""
 
         yvariables = []
-        if 'yaxis' in self.param['plot'][plot_name]:
-            yvariables = self.param['plot'][plot_name]['yaxis']
+        if "yaxis" in self.param["plot"][plot_name]:
+            yvariables = self.param["plot"][plot_name]["yaxis"]
 
             # Make a list if there's only a single entry
             if not isinstance(yvariables, list):
@@ -1001,13 +966,13 @@ class Parameter(ABC, Thread):
                     yvariables[i] = pmatch.group(1)
 
         ydisplays = {key: key for key in yvariables}
-        yunits = {key: '' for key in yvariables}
+        yunits = {key: "" for key in yvariables}
 
         # Get global display and unit
-        if 'display' in self.param:
-            xdisplay = self.param['display']
-        if 'unit' in self.param:
-            xunit = self.param['unit']
+        if "display" in self.param:
+            xdisplay = self.param["display"]
+        if "unit" in self.param:
+            xunit = self.param["unit"]
 
         # If xvariable is a condition, get display and unit
         if xvariable in conditions:
@@ -1027,17 +992,17 @@ class Parameter(ABC, Thread):
                     yunits[yvariable] = conditions[yvariable].unit
 
         # Get the plot type
-        plot_type = 'xyplot'
-        if 'type' in self.param['plot'][plot_name]:
-            plot_type = self.param['plot'][plot_name]['type']
+        plot_type = "xyplot"
+        if "type" in self.param["plot"][plot_name]:
+            plot_type = self.param["plot"][plot_name]["type"]
 
         # Show limits in plots
         # true: always
         # false: never
         # auto: only if in range
-        limits = 'auto'
-        if 'limits' in self.param['plot'][plot_name]:
-            limits = self.param['plot'][plot_name]['limits']
+        limits = "auto"
+        if "limits" in self.param["plot"][plot_name]:
+            limits = self.param["plot"][plot_name]["limits"]
 
         # Limit values
         minimum = None
@@ -1048,115 +1013,94 @@ class Parameter(ABC, Thread):
         if limits != False:
 
             # For the histogram get limits from the x variable
-            if plot_type == 'histogram':
-                if xvariable in self.param['spec']:
-                    if 'minimum' in self.param['spec'][xvariable]:
-                        if 'value' in self.param['spec'][xvariable]['minimum']:
-                            value = self.param['spec'][xvariable]['minimum'][
-                                'value'
-                            ]
-                            if value != 'any':
+            if plot_type == "histogram":
+                if xvariable in self.param["spec"]:
+                    if "minimum" in self.param["spec"][xvariable]:
+                        if "value" in self.param["spec"][xvariable]["minimum"]:
+                            value = self.param["spec"][xvariable]["minimum"]["value"]
+                            if value != "any":
                                 minimum = float(value)
 
-                    if 'typical' in self.param['spec'][xvariable]:
-                        if 'value' in self.param['spec'][xvariable]['typical']:
-                            value = self.param['spec'][xvariable]['typical'][
-                                'value'
-                            ]
-                            if value != 'any':
+                    if "typical" in self.param["spec"][xvariable]:
+                        if "value" in self.param["spec"][xvariable]["typical"]:
+                            value = self.param["spec"][xvariable]["typical"]["value"]
+                            if value != "any":
                                 typical = float(value)
 
-                    if 'maximum' in self.param['spec'][xvariable]:
-                        if 'value' in self.param['spec'][xvariable]['maximum']:
-                            value = self.param['spec'][xvariable]['maximum'][
-                                'value'
-                            ]
-                            if value != 'any':
+                    if "maximum" in self.param["spec"][xvariable]:
+                        if "value" in self.param["spec"][xvariable]["maximum"]:
+                            value = self.param["spec"][xvariable]["maximum"]["value"]
+                            if value != "any":
                                 maximum = float(value)
 
             # Else get limits from the first y variable
             else:
-                if yvariables[0] in self.param['spec']:
-                    if 'minimum' in self.param['spec'][yvariables[0]]:
-                        if (
-                            'value'
-                            in self.param['spec'][yvariables[0]]['minimum']
-                        ):
-                            value = self.param['spec'][yvariables[0]][
-                                'minimum'
-                            ]['value']
-                            if value != 'any':
+                if yvariables[0] in self.param["spec"]:
+                    if "minimum" in self.param["spec"][yvariables[0]]:
+                        if "value" in self.param["spec"][yvariables[0]]["minimum"]:
+                            value = self.param["spec"][yvariables[0]]["minimum"][
+                                "value"
+                            ]
+                            if value != "any":
                                 minimum = float(value)
 
-                    if 'typical' in self.param['spec'][yvariables[0]]:
-                        if (
-                            'value'
-                            in self.param['spec'][yvariables[0]]['typical']
-                        ):
-                            value = self.param['spec'][yvariables[0]][
-                                'typical'
-                            ]['value']
-                            if value != 'any':
+                    if "typical" in self.param["spec"][yvariables[0]]:
+                        if "value" in self.param["spec"][yvariables[0]]["typical"]:
+                            value = self.param["spec"][yvariables[0]]["typical"][
+                                "value"
+                            ]
+                            if value != "any":
                                 typical = float(value)
 
-                    if 'maximum' in self.param['spec'][yvariables[0]]:
-                        if (
-                            'value'
-                            in self.param['spec'][yvariables[0]]['maximum']
-                        ):
-                            value = self.param['spec'][yvariables[0]][
-                                'maximum'
-                            ]['value']
-                            if value != 'any':
+                    if "maximum" in self.param["spec"][yvariables[0]]:
+                        if "value" in self.param["spec"][yvariables[0]]["maximum"]:
+                            value = self.param["spec"][yvariables[0]]["maximum"][
+                                "value"
+                            ]
+                            if value != "any":
                                 maximum = float(value)
 
         # Overwrite with display and unit under "spec"
-        if 'spec' in self.param:
-            if xvariable in self.param['spec']:
-                if 'display' in self.param['spec'][xvariable]:
-                    xdisplay = self.param['spec'][xvariable]['display']
-                if 'unit' in self.param['spec'][xvariable]:
-                    xunit = self.param['spec'][xvariable]['unit']
+        if "spec" in self.param:
+            if xvariable in self.param["spec"]:
+                if "display" in self.param["spec"][xvariable]:
+                    xdisplay = self.param["spec"][xvariable]["display"]
+                if "unit" in self.param["spec"][xvariable]:
+                    xunit = self.param["spec"][xvariable]["unit"]
 
             for yvariable in yvariables:
-                if yvariable in self.param['spec']:
-                    if 'display' in self.param['spec'][yvariable]:
-                        ydisplays[yvariable] = self.param['spec'][yvariable][
-                            'display'
-                        ]
+                if yvariable in self.param["spec"]:
+                    if "display" in self.param["spec"][yvariable]:
+                        ydisplays[yvariable] = self.param["spec"][yvariable]["display"]
 
-                    if 'unit' in self.param['spec'][yvariable]:
-                        yunits[yvariable] = self.param['spec'][yvariable][
-                            'unit'
-                        ]
+                    if "unit" in self.param["spec"][yvariable]:
+                        yunits[yvariable] = self.param["spec"][yvariable]["unit"]
 
         # Overwrite with display and unit under "variables"
-        if 'variables' in self.param:
-            if xvariable in self.param['variables']:
-                if 'display' in self.param['variables'][xvariable]:
-                    xdisplay = self.param['variables'][xvariable]['display']
-                if 'unit' in self.param['variables'][xvariable]:
-                    xunit = self.param['variables'][xvariable]['unit']
+        if "variables" in self.param:
+            if xvariable in self.param["variables"]:
+                if "display" in self.param["variables"][xvariable]:
+                    xdisplay = self.param["variables"][xvariable]["display"]
+                if "unit" in self.param["variables"][xvariable]:
+                    xunit = self.param["variables"][xvariable]["unit"]
 
             for yvariable in yvariables:
-                if yvariable in self.param['variables']:
-                    if 'display' in self.param['variables'][yvariable]:
-                        ydisplays[yvariable] = self.param['variables'][
-                            yvariable
-                        ]['display']
-
-                    if 'unit' in self.param['variables'][yvariable]:
-                        yunits[yvariable] = self.param['variables'][yvariable][
-                            'unit'
+                if yvariable in self.param["variables"]:
+                    if "display" in self.param["variables"][yvariable]:
+                        ydisplays[yvariable] = self.param["variables"][yvariable][
+                            "display"
                         ]
 
+                    if "unit" in self.param["variables"][yvariable]:
+                        yunits[yvariable] = self.param["variables"][yvariable]["unit"]
+
         # Assemble the string displayed at the x-axis
-        xdisplay = f'{xdisplay} ({xunit})' if xunit != '' else xdisplay
+        xdisplay = f"{xdisplay} ({xunit})" if xunit != "" else xdisplay
 
         # Assemble the string displayed at the y-axis
-        ydisplay = ', '.join(
+        ydisplay = ", ".join(
             [
-                f'{value} ({unit})' if unit != '' else value
+                f"{value} ({unit})" if unit != "" else value
                 for value, unit in zip(ydisplays.values(), yunits.values())
             ]
         )
@@ -1169,16 +1113,16 @@ class Parameter(ABC, Thread):
             canvas = FigureCanvasTkAgg(fig, parent)
 
         # Set the title, if given
-        if 'title' in self.param['plot'][plot_name]:
-            fig.suptitle(self.param['plot'][plot_name]['title'])
+        if "title" in self.param["plot"][plot_name]:
+            fig.suptitle(self.param["plot"][plot_name]["title"])
 
         # File format
-        suffix = '.png'
-        if 'suffix' in self.param['plot'][plot_name]:
-            suffix = self.param['plot'][plot_name]['suffix']
+        suffix = ".png"
+        if "suffix" in self.param["plot"][plot_name]:
+            suffix = self.param["plot"][plot_name]["suffix"]
 
         # Filename for the plot
-        filename = f'{plot_name}{suffix}'
+        filename = f"{plot_name}{suffix}"
 
         # Create a new axis for the whole parameter
         ax = fig.add_subplot(111)
@@ -1188,8 +1132,8 @@ class Parameter(ABC, Thread):
         ax.set_ylabel(ydisplay)
 
         # Enable the grid
-        if 'grid' in self.param['plot'][plot_name]:
-            if self.param['plot'][plot_name]['grid']:
+        if "grid" in self.param["plot"][plot_name]:
+            if self.param["plot"][plot_name]["grid"]:
                 ax.grid(True)
 
         # Set opacity for histogram
@@ -1223,9 +1167,7 @@ class Parameter(ABC, Thread):
                 )
 
             # Get the result
-            for condition_set, results in zip(
-                condition_sets, results_for_plot
-            ):
+            for condition_set, results in zip(condition_sets, results_for_plot):
 
                 # Create a deep copy of the condition set
                 condition_set = copy.deepcopy(condition_set)
@@ -1234,8 +1176,8 @@ class Parameter(ABC, Thread):
                 condition_set.pop(xvariable)
 
                 # We also need to remove unique elements, or else no hash will match
-                condition_set.pop('N')
-                condition_set.pop('simpath')
+                condition_set.pop("N")
+                condition_set.pop("simpath")
 
                 cur_hash = hash(frozenset(condition_set.items()))
 
@@ -1271,7 +1213,7 @@ class Parameter(ABC, Thread):
                 elif xvariable in conditions:
                     xvalues = conditions[xvariable].values
                 else:
-                    err(f'Unknown variable: {xvariable} in plot {plot_name}.')
+                    err(f"Unknown variable: {xvariable} in plot {plot_name}.")
                     self.result_type = ResultType.ERROR
                     return None
 
@@ -1287,9 +1229,7 @@ class Parameter(ABC, Thread):
                     elif yvariable in condition_set:
                         yvalues.append(condition_set[yvariable])
                     else:
-                        err(
-                            f'Unknown variable: {yvariable} in plot {plot_name}.'
-                        )
+                        err(f"Unknown variable: {yvariable} in plot {plot_name}.")
                         self.result_type = ResultType.ERROR
                         return None
 
@@ -1306,27 +1246,23 @@ class Parameter(ABC, Thread):
 
                     # Only add conditions with more than one value
                     if len(conditions[condition].values) > 1:
-                        label.append(
-                            f'{condition} = {condition_set[condition]}'
-                        )
-            label = ', '.join(label)
+                        label.append(f"{condition} = {condition_set[condition]}")
+            label = ", ".join(label)
 
             label_list.append(label)
 
-        for xvalues, yvalues, label in zip(
-            xvalues_list, yvalues_list, label_list
-        ):
+        for xvalues, yvalues, label in zip(xvalues_list, yvalues_list, label_list):
 
             marker = None
             if not isinstance(xvalues, list) or len(xvalues) == 1:
-                marker = 'o'
+                marker = "o"
 
             for yvalue in yvalues:
 
                 # Check length of x and y
                 if len(xvalues) != len(yvalue):
                     err(
-                        f'Length of x and y is not the same ({len(xvalues)}, {len(yvalue)}).'
+                        f"Length of x and y is not the same ({len(xvalues)}, {len(yvalue)})."
                     )
                     self.result_type = ResultType.ERROR
                     return None
@@ -1356,20 +1292,20 @@ class Parameter(ABC, Thread):
         # Plot limits
         if limits == True:
             # Use vertical lines
-            if plot_type == 'histogram':
+            if plot_type == "histogram":
                 for limit in [minimum, typical, maximum]:
                     if limit:
-                        ax.axvline(limit, color='black', linestyle=':')
+                        ax.axvline(limit, color="black", linestyle=":")
             # Use horizontal lines
             else:
                 for limit in [minimum, typical, maximum]:
                     if limit:
-                        ax.axhline(limit, color='black', linestyle=':')
+                        ax.axhline(limit, color="black", linestyle=":")
 
         # Only plot limits if in range
-        if limits == 'auto':
+        if limits == "auto":
             # Use vertical lines
-            if plot_type == 'histogram':
+            if plot_type == "histogram":
                 xlim = ax.get_xlim()
                 xrange = xlim[1] - xlim[0]
 
@@ -1379,7 +1315,7 @@ class Parameter(ABC, Thread):
                         and (xlim[0] - xrange * 0.5) < limit
                         and (xlim[1] + xrange * 0.5) > limit
                     ):
-                        ax.axvline(limit, color='black', linestyle=':')
+                        ax.axvline(limit, color="black", linestyle=":")
             # Use horizontal lines
             else:
                 ylim = ax.get_ylim()
@@ -1391,29 +1327,25 @@ class Parameter(ABC, Thread):
                         and (ylim[0] - yrange * 0.5) < limit
                         and (ylim[1] + yrange * 0.5) > limit
                     ):
-                        ax.axhline(limit, color='black', linestyle=':')
+                        ax.axhline(limit, color="black", linestyle=":")
 
         # Enable the legend
         legend = None
         if len(condition_sets) > 1 or (
-            'legend' in self.param['plot'][plot_name]
-            and self.param['plot'][plot_name]['legend']
+            "legend" in self.param["plot"][plot_name]
+            and self.param["plot"][plot_name]["legend"]
         ):
-            legend = ax.legend(
-                loc=2, bbox_to_anchor=(1.04, 1), borderaxespad=0.0
-            )
+            legend = ax.legend(loc=2, bbox_to_anchor=(1.04, 1), borderaxespad=0.0)
 
         # Save the figure for the whole parameter
         if legend:
             fig.savefig(
                 os.path.join(self.param_dir, filename),
-                bbox_inches='tight',
+                bbox_inches="tight",
                 bbox_extra_artists=[legend],
             )
         else:
-            fig.savefig(
-                os.path.join(self.param_dir, filename), bbox_inches='tight'
-            )
+            fig.savefig(os.path.join(self.param_dir, filename), bbox_inches="tight")
 
         self.plots_dict[plot_name] = canvas
         return canvas
@@ -1423,31 +1355,31 @@ class Parameter(ABC, Thread):
         xvalues,
         yvalues,
         axes,
-        plot_type='xyplot',
+        plot_type="xyplot",
         label=None,
         marker=None,
         alpha=1.0,
     ):
-        if plot_type == 'histogram':
+        if plot_type == "histogram":
             for ax in axes:
                 ax.hist(
                     xvalues,
-                    bins='auto',
-                    histtype='bar',
+                    bins="auto",
+                    histtype="bar",
                     label=label,
                     alpha=alpha,
                 )
-        elif plot_type == 'semilogx':
+        elif plot_type == "semilogx":
             for ax in axes:
                 ax.semilogx(xvalues, yvalues, label=label, marker=marker)
-        elif plot_type == 'semilogy':
+        elif plot_type == "semilogy":
             for ax in axes:
                 ax.semilogy(xvalues, yvalues, label=label, marker=marker)
-        elif plot_type == 'loglog':
+        elif plot_type == "loglog":
             for ax in axes:
                 ax.loglog(xvalues, yvalues, label=label, marker=marker)
-        elif plot_type == 'xyplot':
+        elif plot_type == "xyplot":
             for ax in axes:
                 ax.plot(xvalues, yvalues, label=label, marker=marker)
         else:
-            err(f'Unknown plot type: {plot_type}')
+            err(f"Unknown plot type: {plot_type}")

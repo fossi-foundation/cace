@@ -40,7 +40,7 @@ from ..logging import (
 )
 
 
-@register_parameter('klayout_drc')
+@register_parameter("klayout_drc")
 class ParameterKLayoutDRC(Parameter):
     """
     Run DRC using KLayout.
@@ -52,7 +52,7 @@ class ParameterKLayoutDRC(Parameter):
     config_vars = [
         Variable(
             "jobs",
-            int|Literal['max'],
+            int | Literal["max"],
             "Number of jobs to run in parallel.",
             default=1,
         ),
@@ -67,7 +67,7 @@ class ParameterKLayoutDRC(Parameter):
             "Path to a custom KLayout DRC script. If not specified, the PDK DRC deck is used.",
         ),
     ]
-    
+
     config_results = [
         Result(
             "drc_errors",
@@ -87,10 +87,10 @@ class ParameterKLayoutDRC(Parameter):
         )
 
     def is_runnable(self):
-        netlist_source = self.runtime_options['netlist_source']
+        netlist_source = self.runtime_options["netlist_source"]
 
-        if netlist_source == 'schematic':
-            info('Netlist source is schematic capture. Not running DRC.')
+        if netlist_source == "schematic":
+            info("Netlist source is schematic capture. Not running DRC.")
             self.result_type = ResultType.SKIPPED
             return False
 
@@ -100,9 +100,9 @@ class ParameterKLayoutDRC(Parameter):
 
         self.cancel_point()
 
-        jobs = self.config['jobs']
+        jobs = self.config["jobs"]
 
-        if jobs == 'max':
+        if jobs == "max":
             # Set the number of jobs to the number of cores
             jobs = os.cpu_count()
         else:
@@ -112,88 +112,87 @@ class ParameterKLayoutDRC(Parameter):
         # Acquire job(s) from the global jobs semaphore
         self.jobs_sem.acquire(jobs)
 
-        projname = self.datasheet['name']
-        paths = self.datasheet['paths']
+        projname = self.datasheet["name"]
+        paths = self.datasheet["paths"]
 
-        info('Running KLayout to get DRC report.')
+        info("Running KLayout to get DRC report.")
 
         # Get the path to the layout, only GDS
-        (layout_filepath, is_magic) = get_layout_path(
+        layout_filepath, is_magic = get_layout_path(
             projname, self.paths, check_magic=False
         )
 
         # Check if layout exists
         if not os.path.isfile(layout_filepath):
-            err('No layout found!')
+            err("No layout found!")
             self.result_type = ResultType.ERROR
             self.jobs_sem.release(jobs)
             return
 
-        drc_script_path = self.config['drc_script_path']
+        drc_script_path = self.config["drc_script_path"]
 
         if drc_script_path == None:
-            if self.datasheet['PDK'].startswith('sky130'):
+            if self.datasheet["PDK"].startswith("sky130"):
                 drc_script_path = os.path.join(
                     get_pdk_root(),
-                    self.datasheet['PDK'],
-                    'libs.tech',
-                    'klayout',
-                    'drc',
+                    self.datasheet["PDK"],
+                    "libs.tech",
+                    "klayout",
+                    "drc",
                     f'{self.datasheet["PDK"]}_mr.drc',
                 )
-            if self.datasheet['PDK'].startswith('ihp-sg13g2'):
+            if self.datasheet["PDK"].startswith("ihp-sg13g2"):
                 drc_script_path = os.path.join(
                     get_pdk_root(),
-                    self.datasheet['PDK'],
-                    'libs.tech',
-                    'klayout',
-                    'tech',
-                    'drc',
-                    'run_drc.py',
+                    self.datasheet["PDK"],
+                    "libs.tech",
+                    "klayout",
+                    "tech",
+                    "drc",
+                    "run_drc.py",
                 )
 
         if not os.path.exists(drc_script_path):
-            err(f'DRC script {drc_script_path} does not exist!')
+            err(f"DRC script {drc_script_path} does not exist!")
             self.result_type = ResultType.ERROR
             self.jobs_sem.release(jobs)
             return
 
-        report_file_path = os.path.join(self.param_dir, 'report.xml')
+        report_file_path = os.path.join(self.param_dir, "report.xml")
 
         arguments = []
 
         # PDK specific arguments
-        if self.datasheet['PDK'].startswith('sky130'):
+        if self.datasheet["PDK"].startswith("sky130"):
             arguments = [
-                '-b',
-                '-r',
+                "-b",
+                "-r",
                 drc_script_path,
-                '-rd',
-                f'input={os.path.abspath(layout_filepath)}',
-                '-rd',
-                f'topcell={projname}',
-                '-rd',
-                f'report={report_file_path}',
-                '-rd',
-                f'thr={jobs}',
+                "-rd",
+                f"input={os.path.abspath(layout_filepath)}",
+                "-rd",
+                f"topcell={projname}",
+                "-rd",
+                f"report={report_file_path}",
+                "-rd",
+                f"thr={jobs}",
             ]
 
-
-        if self.datasheet['PDK'].startswith('ihp-sg13g2'):
+        if self.datasheet["PDK"].startswith("ihp-sg13g2"):
             arguments = [
                 drc_script_path,
-                f'--topcell={projname}',
-                f'--path={os.path.abspath(layout_filepath)}',
-                f'--run_dir={self.param_dir}',
-                f'--mp={jobs}',
+                f"--topcell={projname}",
+                f"--path={os.path.abspath(layout_filepath)}",
+                f"--run_dir={self.param_dir}",
+                f"--mp={jobs}",
             ]
-            
-            if self.config['args']:
-                arguments.extend(self.config['args'])
+
+            if self.config["args"]:
+                arguments.extend(self.config["args"])
 
             # IHP has a python wrapper for running the DRC
             returncode = self.run_subprocess(
-                'python3',
+                "python3",
                 arguments,
                 cwd=self.param_dir,
             )
@@ -201,16 +200,16 @@ class ParameterKLayoutDRC(Parameter):
             # The report is placed in a .lyrdb file
             #  - The name of this file depends on which rulesets were checked...
             #  - Only one report should remain after merging by run_drc.py
-            report_files = glob.glob(f'{self.param_dir}/*.lyrdb')
+            report_files = glob.glob(f"{self.param_dir}/*.lyrdb")
             if len(report_files) > 0:
                 report_file_path = report_files[0]
 
         else:
-            if self.config['args']:
-                arguments.extend(self.config['args'])
-        
+            if self.config["args"]:
+                arguments.extend(self.config["args"])
+
             returncode = self.run_subprocess(
-                'klayout',
+                "klayout",
                 arguments,
                 cwd=self.param_dir,
             )
@@ -223,8 +222,8 @@ class ParameterKLayoutDRC(Parameter):
             self.step_cb(self.param)
 
         if not os.path.isfile(report_file_path):
-            err('No output file generated by KLayout!')
-            err(f'Expected file: {report_file_path}')
+            err("No output file generated by KLayout!")
+            err(f"Expected file: {report_file_path}")
             self.result_type = ResultType.ERROR
             return
 
@@ -237,22 +236,22 @@ class ParameterKLayoutDRC(Parameter):
             with open(report_file_path) as klayout_xml_report:
                 size = os.fstat(klayout_xml_report.fileno()).st_size
                 if size == 0:
-                    err(f'File {report_file_path} is of size 0.')
+                    err(f"File {report_file_path} is of size 0.")
                     self.result_type = ResultType.ERROR
                     return
                 drc_content = klayout_xml_report.read()
-                drc_count = drc_content.count('<item>')
+                drc_count = drc_content.count("<item>")
 
                 self.result_type = ResultType.SUCCESS
-                self.get_result('drc_errors').values = [drc_count]
+                self.get_result("drc_errors").values = [drc_count]
                 return
 
         # Catch reports not found
         except FileNotFoundError as e:
-            err(f'Failed to generate {report_file_path}: {e}')
+            err(f"Failed to generate {report_file_path}: {e}")
             self.result_type = ResultType.ERROR
             return
         except (IOError, OSError) as e:
-            err(f'Failed to generate {report_file_path}: {e}')
+            err(f"Failed to generate {report_file_path}: {e}")
             self.result_type = ResultType.ERROR
             return

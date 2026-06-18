@@ -26,6 +26,7 @@ from sphinx.application import Sphinx
 from cace.common import slugify
 from cace.parameter.registry import get_tools
 
+
 def setup(app: Sphinx):
     app.connect("config-inited", generate_module_docs)
     return {"version": "1.0"}
@@ -38,8 +39,10 @@ def generate_module_docs(app: Sphinx, conf: Config):
 
         template_relpath: str = conf.templates_path[0]
         current_file_path = os.path.dirname(os.path.abspath(__file__))
-        template_path = os.path.abspath(os.path.join(current_file_path, "..", template_relpath, "generate_docs"))
-        
+        template_path = os.path.abspath(
+            os.path.join(current_file_path, "..", template_relpath, "generate_docs")
+        )
+
         lookup = jinja2.FileSystemLoader(searchpath=template_path)
 
         # Mako-like environment
@@ -54,8 +57,7 @@ def generate_module_docs(app: Sphinx, conf: Config):
             "##",
             loader=lookup,
         )
-        
-        
+
         # Pre-processing
         by_category = {}
         for param in get_tools().values():
@@ -66,7 +68,7 @@ def generate_module_docs(app: Sphinx, conf: Config):
 
         print(by_category)
 
-        misc = ("Misc", by_category.get("Misc",[]))
+        misc = ("Misc", by_category.get("Misc", []))
         if "Misc" in by_category:
             del by_category["Misc"]
 
@@ -87,13 +89,10 @@ def generate_module_docs(app: Sphinx, conf: Config):
 
         print(categories_sorted)
 
-
         # --
 
         template = env.get_template("tools.md")
-        with open(
-            os.path.join(doc_root_dir, "reference", "tools.md"), "w"
-        ) as f:
+        with open(os.path.join(doc_root_dir, "reference", "tools.md"), "w") as f:
             f.write(
                 template.render(
                     slugify=slugify,

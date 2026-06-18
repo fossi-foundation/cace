@@ -64,7 +64,7 @@ class Path(UserString, os.PathLike):
         """
         Raises an error if the path does not exist.
         """
-        #if not self.exists() and not self == Path._dummy_path:
+        # if not self.exists() and not self == Path._dummy_path:
         #    raise ValueError(f"{message_on_err}: '{self}' does not exist")
         pass
 

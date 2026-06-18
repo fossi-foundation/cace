@@ -24,15 +24,15 @@ class LinkButton(ttk.Button):
         super().__init__(*args, **kwargs)
 
         # Use the default font.
-        label_font = nametofont('TkDefaultFont').cget('family')
+        label_font = nametofont("TkDefaultFont").cget("family")
         self.font = Font(family=label_font, size=9)
 
         # Label-like styling.
         style = ttk.Style()
-        style.configure('Link.TLabel', foreground='#357fde')
-        self.configure(style='Link.TLabel', cursor='hand2')
-        self.bind('<Enter>', self.on_mouse_enter)
-        self.bind('<Leave>', self.on_mouse_leave)
+        style.configure("Link.TLabel", foreground="#357fde")
+        self.configure(style="Link.TLabel", cursor="hand2")
+        self.bind("<Enter>", self.on_mouse_enter)
+        self.bind("<Leave>", self.on_mouse_leave)
 
     def on_mouse_enter(self, event):
         self.font.configure(underline=True)
@@ -48,12 +48,12 @@ class HelpWindow(tkinter.Toplevel):
         """See the __init__ for Tkinter.Toplevel."""
         tkinter.Toplevel.__init__(self, parent, *args, **kwargs)
 
-        self.geometry('520x300')
+        self.geometry("520x300")
 
-        self.protocol('WM_DELETE_WINDOW', self.close)
+        self.protocol("WM_DELETE_WINDOW", self.close)
 
         self.withdraw()
-        self.title('Help')
+        self.title("Help")
 
         # Automatically fit the window
         self.grid_rowconfigure(0, weight=1)
@@ -64,9 +64,9 @@ class HelpWindow(tkinter.Toplevel):
         # Title
         helptitle = ttk.Label(
             self,
-            text=f'CACE {__version__}',
-            style='title.TLabel',
-            justify='center',
+            text=f"CACE {__version__}",
+            style="title.TLabel",
+            justify="center",
         )
         helptitle.grid(column=0, row=0)
 
@@ -75,19 +75,19 @@ class HelpWindow(tkinter.Toplevel):
             self,
             text="""Graphical interface for the Circuit Automatic Characterization Engine,
     an analog and mixed-signal design flow system.""",
-            justify='center',
+            justify="center",
         )
         helptext1.grid(column=0, row=1)
 
         # Bar
-        helpbar = ttk.Separator(self, orient='horizontal')
-        helpbar.grid(column=0, row=2, sticky='ew')
+        helpbar = ttk.Separator(self, orient="horizontal")
+        helpbar.grid(column=0, row=2, sticky="ew")
 
         # Text
         helptext2 = ttk.Label(
             self,
-            text='The repository and documentation are hosted online at:',
-            justify='center',
+            text="The repository and documentation are hosted online at:",
+            justify="center",
         )
         helptext2.grid(column=0, row=3)
 
@@ -95,24 +95,24 @@ class HelpWindow(tkinter.Toplevel):
         project_frame = ttk.Frame(self)
         project_frame.grid(column=0, row=4, columnspan=2)
 
-        title = ttk.Label(project_frame, text='Repository: ')
+        title = ttk.Label(project_frame, text="Repository: ")
         title.grid(column=0, row=0)
 
-        url1 = 'https://github.com/efabless/cace'
+        url1 = "https://github.com/efabless/cace"
         link = LinkButton(project_frame, text=url1)
-        link.bind('<Button-1>', lambda e: webbrowser.open_new(url1))
+        link.bind("<Button-1>", lambda e: webbrowser.open_new(url1))
         link.grid(column=1, row=0)
 
         # URL documentation
         docs_frame = ttk.Frame(self)
         docs_frame.grid(column=0, row=5, columnspan=2)
 
-        title = ttk.Label(docs_frame, text='Documentation: ')
+        title = ttk.Label(docs_frame, text="Documentation: ")
         title.grid(column=0, row=0)
 
-        url2 = 'https://cace.readthedocs.io/'
+        url2 = "https://cace.readthedocs.io/"
         link = LinkButton(docs_frame, text=url2)
-        link.bind('<Button-1>', lambda e: webbrowser.open_new(url2))
+        link.bind("<Button-1>", lambda e: webbrowser.open_new(url2))
         link.grid(column=1, row=0)
 
         # Placeholder

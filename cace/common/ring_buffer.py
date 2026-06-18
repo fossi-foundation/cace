@@ -13,7 +13,7 @@
 # limitations under the License.
 from typing import Iterable, Iterator, Type, TypeVar
 
-VT = TypeVar('VT')
+VT = TypeVar("VT")
 
 
 class RingBuffer(Iterable[VT]):
@@ -36,7 +36,7 @@ class RingBuffer(Iterable[VT]):
 
     def pop(self) -> VT:
         if self._len == 0:
-            raise IndexError('pop from empty ring buffer')
+            raise IndexError("pop from empty ring buffer")
         element = self[0]
         self._head = (self._head + 1) % self._max
         self._len -= 1
@@ -51,7 +51,7 @@ class RingBuffer(Iterable[VT]):
 
     def __getitem__(self, idx: int, /) -> VT:
         if idx + 1 > self._len:
-            raise IndexError(f'{idx} is out of range')
+            raise IndexError(f"{idx} is out of range")
         i = (self._head + idx) % self._max
         return self._store[i]
 

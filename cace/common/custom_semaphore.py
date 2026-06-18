@@ -7,7 +7,7 @@ from copy import copy
 class CustomSemaphore:
     def __init__(self, value: int = 1):
         if value < 0:
-            raise ValueError('Initial value must be >= 0')
+            raise ValueError("Initial value must be >= 0")
 
         # initialize counter
         self._counter = value

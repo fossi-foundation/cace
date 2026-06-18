@@ -36,41 +36,42 @@ motion() :          is called when the mouse pointer moves inside the parent wid
 coords() :          calculates the screen coordinates of the tooltip window
 create_contents() : creates the contents of the tooltip window (by default a tkinter.Label)
 """
+
 # Ideas gleaned from PySol
 
 import tkinter
 
 
 class ToolTip:
-    def __init__(self, master, text='Your text here', delay=1500, **opts):
+    def __init__(self, master, text="Your text here", delay=1500, **opts):
         self.master = master
         self._opts = {
-            'anchor': 'center',
-            'bd': 1,
-            'bg': 'lightyellow',
-            'delay': delay,
-            'fg': 'black',
-            'follow_mouse': 0,
-            'font': None,
-            'justify': 'left',
-            'padx': 4,
-            'pady': 2,
-            'relief': 'solid',
-            'state': 'normal',
-            'text': text,
-            'textvariable': None,
-            'width': 0,
-            'wraplength': 150,
+            "anchor": "center",
+            "bd": 1,
+            "bg": "lightyellow",
+            "delay": delay,
+            "fg": "black",
+            "follow_mouse": 0,
+            "font": None,
+            "justify": "left",
+            "padx": 4,
+            "pady": 2,
+            "relief": "solid",
+            "state": "normal",
+            "text": text,
+            "textvariable": None,
+            "width": 0,
+            "wraplength": 150,
         }
         self.configure(**opts)
         self._tipwindow = None
         self._id = None
-        self._id1 = self.master.bind('<Enter>', self.enter, '+')
-        self._id2 = self.master.bind('<Leave>', self.leave, '+')
-        self._id3 = self.master.bind('<ButtonPress>', self.leave, '+')
+        self._id1 = self.master.bind("<Enter>", self.enter, "+")
+        self._id2 = self.master.bind("<Leave>", self.leave, "+")
+        self._id3 = self.master.bind("<ButtonPress>", self.leave, "+")
         self._follow_mouse = 0
-        if self._opts['follow_mouse']:
-            self._id4 = self.master.bind('<Motion>', self.motion, '+')
+        if self._opts["follow_mouse"]:
+            self._id4 = self.master.bind("<Motion>", self.motion, "+")
             self._follow_mouse = 1
 
     def configure(self, **opts):
@@ -94,15 +95,15 @@ class ToolTip:
     def motion(self, event=None):
         if self._tipwindow and self._follow_mouse:
             x, y = self.coords()
-            self._tipwindow.wm_geometry('+%d+%d' % (x, y))
+            self._tipwindow.wm_geometry("+%d+%d" % (x, y))
 
     ##------the methods that do the work:---------------------------------------------------------##
 
     def _schedule(self):
         self._unschedule()
-        if self._opts['state'] == 'disabled':
+        if self._opts["state"] == "disabled":
             return
-        self._id = self.master.after(self._opts['delay'], self._show)
+        self._id = self.master.after(self._opts["delay"], self._show)
 
     def _unschedule(self):
         id = self._id
@@ -111,7 +112,7 @@ class ToolTip:
             self.master.after_cancel(id)
 
     def _show(self):
-        if self._opts['state'] == 'disabled':
+        if self._opts["state"] == "disabled":
             self._unschedule()
             return
         if not self._tipwindow:
@@ -120,19 +121,19 @@ class ToolTip:
             tw.withdraw()
             tw.wm_overrideredirect(1)
 
-            if tw.tk.call('tk', 'windowingsystem') == 'aqua':
+            if tw.tk.call("tk", "windowingsystem") == "aqua":
                 tw.tk.call(
-                    '::tk::unsupported::MacWindowStyle',
-                    'style',
+                    "::tk::unsupported::MacWindowStyle",
+                    "style",
                     tw._w,
-                    'help',
-                    'none',
+                    "help",
+                    "none",
                 )
 
             self.create_contents()
             tw.update_idletasks()
             x, y = self.coords()
-            tw.wm_geometry('+%d+%d' % (x, y))
+            tw.wm_geometry("+%d+%d" % (x, y))
             tw.deiconify()
             tw.lift()
 
@@ -173,7 +174,7 @@ class ToolTip:
 
     def create_contents(self):
         opts = self._opts.copy()
-        for opt in ('delay', 'follow_mouse', 'state'):
+        for opt in ("delay", "follow_mouse", "state"):
             del opts[opt]
         label = tkinter.Label(self._tipwindow, **opts)
         label.pack()

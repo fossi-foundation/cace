@@ -17,7 +17,7 @@ import tkinter
 from tkinter import ttk
 
 # User preferences file (if it exists)
-prefsfile = '~/design/.profile/prefs.json'
+prefsfile = "~/design/.profile/prefs.json"
 
 
 def init_style():
@@ -28,10 +28,10 @@ def init_style():
     # Read user preferences file, get default font size from it.
     prefspath = os.path.expanduser(prefsfile)
     if os.path.exists(prefspath):
-        with open(prefspath, 'r') as f:
+        with open(prefspath, "r") as f:
             prefs = json.load(f)
-        if 'fontsize' in prefs:
-            fontsize = prefs['fontsize']
+        if "fontsize" in prefs:
+            fontsize = prefs["fontsize"]
     else:
         prefs = {}
 
@@ -40,122 +40,120 @@ def init_style():
     available_themes = s.theme_names()
     s.theme_use(available_themes[0])
 
-    s.configure('bg.TFrame', background='gray40')
+    s.configure("bg.TFrame", background="gray40")
     s.configure(
-        'italic.TLabel', font=('Helvetica', fontsize, 'italic')
-    )   # anchor='west'
+        "italic.TLabel", font=("Helvetica", fontsize, "italic")
+    )  # anchor='west'
     s.configure(
-        'title.TLabel',
-        font=('Helvetica', fontsize, 'bold'),
-        foreground='brown',
-        anchor='center',
+        "title.TLabel",
+        font=("Helvetica", fontsize, "bold"),
+        foreground="brown",
+        anchor="center",
     )
-    s.configure('normal.TLabel', font=('Helvetica', fontsize))
-    s.configure('red.TLabel', font=('Helvetica', fontsize), foreground='red')
+    s.configure("normal.TLabel", font=("Helvetica", fontsize))
+    s.configure("red.TLabel", font=("Helvetica", fontsize), foreground="red")
     s.configure(
-        'green.TLabel',
-        font=('Helvetica', fontsize),
-        foreground='green3',  # green4
+        "green.TLabel",
+        font=("Helvetica", fontsize),
+        foreground="green3",  # green4
     )
-    s.configure('blue.TLabel', font=('Helvetica', fontsize), foreground='blue')
+    s.configure("blue.TLabel", font=("Helvetica", fontsize), foreground="blue")
+    s.configure("hlight.TLabel", font=("Helvetica", fontsize), background="gray93")
     s.configure(
-        'hlight.TLabel', font=('Helvetica', fontsize), background='gray93'
-    )
-    s.configure(
-        'rhlight.TLabel',
-        font=('Helvetica', fontsize),
-        foreground='red',
-        background='gray93',
+        "rhlight.TLabel",
+        font=("Helvetica", fontsize),
+        foreground="red",
+        background="gray93",
     )
     s.configure(
-        'ghlight.TLabel',
-        font=('Helvetica', fontsize),
-        foreground='green3',
-        background='gray93',
+        "ghlight.TLabel",
+        font=("Helvetica", fontsize),
+        foreground="green3",
+        background="gray93",
     )
     s.configure(
-        'blue.TMenubutton',
-        font=('Helvetica', fontsize),
-        foreground='blue',
+        "blue.TMenubutton",
+        font=("Helvetica", fontsize),
+        foreground="blue",
         border=3,
-        relief='raised',
+        relief="raised",
     )
     s.configure(
-        'normal.TButton',
-        font=('Helvetica', fontsize),
+        "normal.TButton",
+        font=("Helvetica", fontsize),
         border=3,
-        relief='raised',
+        relief="raised",
     )
     s.configure(
-        'red.TButton',
-        font=('Helvetica', fontsize),
-        foreground='red',
+        "red.TButton",
+        font=("Helvetica", fontsize),
+        foreground="red",
         border=3,
-        relief='raised',
+        relief="raised",
     )
     s.configure(
-        'green.TButton',
-        font=('Helvetica', fontsize),
-        foreground='green3',  # green4
+        "green.TButton",
+        font=("Helvetica", fontsize),
+        foreground="green3",  # green4
         border=3,
-        relief='raised',
+        relief="raised",
     )
     s.configure(
-        'hlight.TButton',
-        font=('Helvetica', fontsize),
+        "hlight.TButton",
+        font=("Helvetica", fontsize),
         border=3,
-        relief='raised',
-        background='gray93',
+        relief="raised",
+        background="gray93",
     )
     s.configure(
-        'rhlight.TButton',
-        font=('Helvetica', fontsize),
-        foreground='red',
+        "rhlight.TButton",
+        font=("Helvetica", fontsize),
+        foreground="red",
         border=3,
-        relief='raised',
-        background='gray93',
+        relief="raised",
+        background="gray93",
     )
     s.configure(
-        'ghlight.TButton',
-        font=('Helvetica', fontsize),
-        foreground='green3',
+        "ghlight.TButton",
+        font=("Helvetica", fontsize),
+        foreground="green3",
         border=3,
-        relief='raised',
-        background='gray93',
+        relief="raised",
+        background="gray93",
     )
     s.configure(
-        'blue.TButton',
-        font=('Helvetica', fontsize),
-        foreground='blue',
+        "blue.TButton",
+        font=("Helvetica", fontsize),
+        foreground="blue",
         border=3,
-        relief='raised',
+        relief="raised",
     )
     s.configure(
-        'redtitle.TButton',
-        font=('Helvetica', fontsize, 'bold italic'),
-        foreground='red',
+        "redtitle.TButton",
+        font=("Helvetica", fontsize, "bold italic"),
+        foreground="red",
         border=3,
-        relief='raised',
+        relief="raised",
     )
     s.configure(
-        'bluetitle.TButton',
-        font=('Helvetica', fontsize, 'bold'),
-        foreground='blue',
+        "bluetitle.TButton",
+        font=("Helvetica", fontsize, "bold"),
+        foreground="blue",
         border=3,
-        relief='raised',
+        relief="raised",
     )
     s.configure(
-        'brown.TLabel',
-        font=('Helvetica', fontsize, 'italic'),
-        foreground='brown',
-        anchor='center',
+        "brown.TLabel",
+        font=("Helvetica", fontsize, "italic"),
+        foreground="brown",
+        anchor="center",
     )
     s.configure(
-        'title.TButton',
-        font=('Helvetica', fontsize, 'bold italic'),
-        foreground='brown',
+        "title.TButton",
+        font=("Helvetica", fontsize, "bold italic"),
+        foreground="brown",
         border=0,
-        relief='groove',
+        relief="groove",
     )
 
     return fontsize

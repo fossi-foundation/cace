@@ -51,119 +51,117 @@ def generate_documentation(datasheet):
     """
 
     doc_file = os.path.join(
-        datasheet['paths']['root'],
-        datasheet['paths']['documentation'],
+        datasheet["paths"]["root"],
+        datasheet["paths"]["documentation"],
         f'{datasheet["name"]}.md',
     )
 
-    with open(doc_file, 'w') as ofile:
+    with open(doc_file, "w") as ofile:
         ofile.write(f'# {datasheet["name"]}\n\n')
 
-        if 'description' in datasheet:
+        if "description" in datasheet:
             ofile.write(f'- Description: {datasheet["description"]}\n')
 
-        if 'commit' in datasheet:
+        if "commit" in datasheet:
             ofile.write(f'- Commit: {datasheet["commit"]}\n')
 
-        if 'PDK' in datasheet:
+        if "PDK" in datasheet:
             ofile.write(f'- PDK: {datasheet["PDK"]}\n')
 
-        if 'authorship' in datasheet:
+        if "authorship" in datasheet:
 
-            ofile.write(f'\n## Authorship\n\n')
+            ofile.write(f"\n## Authorship\n\n")
 
             known_fields = {
-                'designer': 'Designer',
-                'company': 'Company',
-                'institution': 'Institution',
-                'email': 'Contact',
-                'creation_date': 'Created',
-                'modification_date': 'Last modified',
-                'license': 'License',
+                "designer": "Designer",
+                "company": "Company",
+                "institution": "Institution",
+                "email": "Contact",
+                "creation_date": "Created",
+                "modification_date": "Last modified",
+                "license": "License",
             }
 
-            for entry in datasheet['authorship']:
+            for entry in datasheet["authorship"]:
                 if entry in known_fields:
                     ofile.write(
                         f'- {known_fields[entry]}: {datasheet["authorship"][entry]}\n'
                     )
                 else:
-                    warn(f'Unknown entry in authorship: {entry}')
+                    warn(f"Unknown entry in authorship: {entry}")
 
-        if 'pins' in datasheet:
+        if "pins" in datasheet:
 
-            ofile.write(f'\n## Pins\n\n')
+            ofile.write(f"\n## Pins\n\n")
 
             known_fields = {
-                'display': 'Display',
-                'description': 'Description',
-                'type': 'Type',
-                'direction': 'Direction',
-                'Vmin': 'Vmin',
-                'Vmax': 'Vmax',
-                'imin': 'Imin',
-                'imax': 'Imax',
-                'note': 'Note',
+                "display": "Display",
+                "description": "Description",
+                "type": "Type",
+                "direction": "Direction",
+                "Vmin": "Vmin",
+                "Vmax": "Vmax",
+                "imin": "Imin",
+                "imax": "Imax",
+                "note": "Note",
             }
 
-            for pin in datasheet['pins']:
-                ofile.write(f'- {pin}\n')
+            for pin in datasheet["pins"]:
+                ofile.write(f"- {pin}\n")
 
-                for entry in datasheet['pins'][pin]:
+                for entry in datasheet["pins"][pin]:
                     if entry in known_fields:
                         ofile.write(
                             f'  + {known_fields[entry]}: {datasheet["pins"][pin][entry]}\n'
                         )
                     else:
-                        warn(f'Unknown entry in pins: {entry}')
+                        warn(f"Unknown entry in pins: {entry}")
 
-        if 'default_conditions' in datasheet:
+        if "default_conditions" in datasheet:
 
-            ofile.write(f'\n## Default Conditions\n\n')
+            ofile.write(f"\n## Default Conditions\n\n")
 
             known_fields = {
-                'display': 'Display',
-                'description': 'Description',
-                'unit': 'Unit',
-                'direction': 'Direction',
-                'minimum': 'Minimum',
-                'typical': 'Typical',
-                'maximum': 'Maximum',
-                'enumerate': 'Enumerate',
-                'step': 'Step',
-                'stepsize': 'Stepsize',
-                'note': 'Note',
+                "display": "Display",
+                "description": "Description",
+                "unit": "Unit",
+                "direction": "Direction",
+                "minimum": "Minimum",
+                "typical": "Typical",
+                "maximum": "Maximum",
+                "enumerate": "Enumerate",
+                "step": "Step",
+                "stepsize": "Stepsize",
+                "note": "Note",
             }
 
-            for default_condition in datasheet['default_conditions']:
-                ofile.write(f'- {default_condition}\n')
+            for default_condition in datasheet["default_conditions"]:
+                ofile.write(f"- {default_condition}\n")
 
-                for entry in datasheet['default_conditions'][
-                    default_condition
-                ]:
+                for entry in datasheet["default_conditions"][default_condition]:
                     if entry in known_fields:
                         ofile.write(
                             f'  + {known_fields[entry]}: {datasheet["default_conditions"][default_condition][entry]}\n'
                         )
                     else:
-                        warn(f'Unknown entry in default_conditions: {entry}')
+                        warn(f"Unknown entry in default_conditions: {entry}")
 
         # Add symbol image
-        ofile.write(f'\n## Symbol\n\n')
+        ofile.write(f"\n## Symbol\n\n")
         ofile.write(
             f'![Symbol of {datasheet["name"]}]({datasheet["name"]}_symbol.svg)\n'
         )
 
         # Add schematic image
-        ofile.write(f'\n## Schematic\n\n')
+        ofile.write(f"\n## Schematic\n\n")
         ofile.write(
             f'![Schematic of {datasheet["name"]}]({datasheet["name"]}_schematic.svg)\n'
         )
 
-        if 'layout' in datasheet['paths']:
+        if "layout" in datasheet["paths"]:
 
             # Add layout images
-            ofile.write(f'\n## Layout\n\n')
+            ofile.write(f"\n## Layout\n\n")
             ofile.write(
                 f'![Layout of {datasheet["name"]} with white background]({datasheet["name"]}_w.png)\n'
             )
@@ -173,56 +171,56 @@ def generate_documentation(datasheet):
 
     # Generate xschem symbol svg
     svgpath = os.path.join(
-        datasheet['paths']['root'],
-        datasheet['paths']['documentation'],
+        datasheet["paths"]["root"],
+        datasheet["paths"]["documentation"],
         f'{datasheet["name"]}_symbol.svg',
     )
 
-    symname = datasheet['name'] + '.sym'
+    symname = datasheet["name"] + ".sym"
     sympath = os.path.join(
-        datasheet['paths']['root'], datasheet['paths']['schematic'], symname
+        datasheet["paths"]["root"], datasheet["paths"]["schematic"], symname
     )
 
     if xschem_generate_svg(sympath, svgpath):
-        err(f'Error generating SVG for symbol.')
+        err(f"Error generating SVG for symbol.")
 
     # Generate xschem schematic svg
     svgpath = os.path.join(
-        datasheet['paths']['root'],
-        datasheet['paths']['documentation'],
+        datasheet["paths"]["root"],
+        datasheet["paths"]["documentation"],
         f'{datasheet["name"]}_schematic.svg',
     )
 
-    schemname = datasheet['name'] + '.sch'
+    schemname = datasheet["name"] + ".sch"
     schempath = os.path.join(
-        datasheet['paths']['root'], datasheet['paths']['schematic'], schemname
+        datasheet["paths"]["root"], datasheet["paths"]["schematic"], schemname
     )
 
     if xschem_generate_svg(schempath, svgpath):
-        err(f'Error generating SVG for schematic.')
+        err(f"Error generating SVG for schematic.")
 
     # Generate KLayout image
     svgpath = os.path.join(
-        datasheet['paths']['root'],
-        datasheet['paths']['documentation'],
+        datasheet["paths"]["root"],
+        datasheet["paths"]["documentation"],
         f'{datasheet["name"]}_klayout.svg',
     )
 
     # Use GDSII
-    if 'layout' in datasheet['paths']:
+    if "layout" in datasheet["paths"]:
 
         # Get the path to the GDSII layout
-        (layout_filepath, is_magic) = get_layout_path(
-            datasheet['name'], datasheet['paths'], False
+        layout_filepath, is_magic = get_layout_path(
+            datasheet["name"], datasheet["paths"], False
         )
 
         # Generate KLayout image
         klayout_generate_png(
             layout_filepath,
             os.path.join(
-                datasheet['paths']['root'], datasheet['paths']['documentation']
+                datasheet["paths"]["root"], datasheet["paths"]["documentation"]
             ),
-            datasheet['name'],
+            datasheet["name"],
         )
 
 
@@ -233,7 +231,7 @@ def markdown_summary(datasheet, runtime_options, results, result_types):
     directly or via rich to get a nice formatting
     """
 
-    result = ''
+    result = ""
 
     # Table spacings
     sp = [20, 20, 15, 10, 12, 10, 12, 10, 12, 8]
@@ -243,7 +241,7 @@ def markdown_summary(datasheet, runtime_options, results, result_types):
     result += f'**netlist source**: {runtime_options["netlist_source"]}\n\n'
 
     # Print the table headings
-    result += ''.join(
+    result += "".join(
         [
             f'| {"Parameter": ^{sp[0]}} ',
             f'| {"Tool": ^{sp[1]}} ',
@@ -258,7 +256,7 @@ def markdown_summary(datasheet, runtime_options, results, result_types):
         ]
     )
     # Print the separators
-    result += ''.join(
+    result += "".join(
         [
             f'| :{"-"*(sp[0]-1)} ',
             f'| :{"-"*(sp[1]-1)} ',
@@ -274,64 +272,61 @@ def markdown_summary(datasheet, runtime_options, results, result_types):
     )
 
     # For each parameter
-    for param in datasheet['parameters'].values():
+    for param in datasheet["parameters"].values():
 
         # For each named result in the spec
-        for named_result in param['spec']:
+        for named_result in param["spec"]:
 
             # Prefer the local unit
             unit = (
-                param['spec'][named_result]['unit']
-                if 'unit' in param['spec'][named_result]
+                param["spec"][named_result]["unit"]
+                if "unit" in param["spec"][named_result]
                 else None
             )
 
             # Else use the global unit
             if not unit:
-                unit = param['unit'] if 'unit' in param else None
+                unit = param["unit"] if "unit" in param else None
 
-            limits = {'minimum': '', 'typical': '', 'maximum': ''}
+            limits = {"minimum": "", "typical": "", "maximum": ""}
 
             # Get the limits from the spec
-            for entry in ['minimum', 'typical', 'maximum']:
-                if entry in param['spec'][named_result]:
-                    limits[entry] = param['spec'][named_result][entry]['value']
+            for entry in ["minimum", "typical", "maximum"]:
+                if entry in param["spec"][named_result]:
+                    limits[entry] = param["spec"][named_result][entry]["value"]
 
-            values = {'minimum': '', 'typical': '', 'maximum': ''}
+            values = {"minimum": "", "typical": "", "maximum": ""}
 
             # Default is skipped, TODO set somewhere else
             status = ResultType.SKIPPED
 
             # Get the results and check the status
-            if param['name'] in results:
+            if param["name"] in results:
 
-                if named_result in results[param['name']]:
+                if named_result in results[param["name"]]:
                     status = ResultType.SUCCESS
-                    for entry in ['minimum', 'typical', 'maximum']:
-                        values[entry] = results[param['name']][
-                            named_result
-                        ].result[entry]
+                    for entry in ["minimum", "typical", "maximum"]:
+                        values[entry] = results[param["name"]][named_result].result[
+                            entry
+                        ]
 
                         # Check the result type
-                        if (
-                            results[param['name']][named_result].status[entry]
-                            == 'fail'
-                        ):
+                        if results[param["name"]][named_result].status[entry] == "fail":
                             status = ResultType.FAILURE
 
                 # Overwrite with parameter result type
-                if param['name'] in result_types:
-                    if result_types[param['name']] == ResultType.SKIPPED:
+                if param["name"] in result_types:
+                    if result_types[param["name"]] == ResultType.SKIPPED:
                         status = ResultType.SKIPPED
-                    if result_types[param['name']] == ResultType.ERROR:
+                    if result_types[param["name"]] == ResultType.ERROR:
                         status = ResultType.ERROR
-                    elif result_types[param['name']] == ResultType.UNKNOWN:
+                    elif result_types[param["name"]] == ResultType.UNKNOWN:
                         status = ResultType.UNKNOWN
-                    elif result_types[param['name']] == ResultType.CANCELED:
+                    elif result_types[param["name"]] == ResultType.CANCELED:
                         status = ResultType.CANCELED
 
             # Get the tool
-            tool = param['tool']
+            tool = param["tool"]
 
             # Get the name of the tool
             if isinstance(tool, str):
@@ -340,51 +335,51 @@ def markdown_summary(datasheet, runtime_options, results, result_types):
                 toolname = list(tool.keys())[0]
 
             # Don't print any unit if empty or "any"
-            no_unit = ['', 'any', None]
+            no_unit = ["", "any", None]
 
             # Print the row for the parameter
             parameter_str = (
-                param['spec'][named_result]['display']
-                if 'display' in param['spec'][named_result]
-                else param['display']
+                param["spec"][named_result]["display"]
+                if "display" in param["spec"][named_result]
+                else param["display"]
             )
             tool_str = toolname
             result_str = named_result
             min_limit_str = (
                 f'{limits["minimum"]} {unit}'
-                if unit and not limits['minimum'] in no_unit
-                else limits['minimum']
+                if unit and not limits["minimum"] in no_unit
+                else limits["minimum"]
             )
             min_value_str = (
                 f'{spice_unit_unconvert((str(unit), values["minimum"])):.3f} {unit}'
-                if unit and not values['minimum'] in no_unit
-                else values['minimum']
+                if unit and not values["minimum"] in no_unit
+                else values["minimum"]
             )
             typ_limit_str = (
                 f'{limits["typical"]} {unit}'
-                if unit and not limits['typical'] in no_unit
-                else limits['typical']
+                if unit and not limits["typical"] in no_unit
+                else limits["typical"]
             )
             typ_value_str = (
                 f'{spice_unit_unconvert((str(unit), values["typical"])):.3f} {unit}'
-                if unit and not values['typical'] in no_unit
-                else values['typical']
+                if unit and not values["typical"] in no_unit
+                else values["typical"]
             )
             max_limit_str = (
                 f'{limits["maximum"]} {unit}'
-                if unit and not limits['maximum'] in no_unit
-                else limits['maximum']
+                if unit and not limits["maximum"] in no_unit
+                else limits["maximum"]
             )
             max_value_str = (
                 f'{spice_unit_unconvert((str(unit), values["maximum"])):.3f} {unit}'
-                if unit and not values['maximum'] in no_unit
-                else values['maximum']
+                if unit and not values["maximum"] in no_unit
+                else values["maximum"]
             )
             status_str = status
 
             # Workaround for rich: replace empty cells with one invisible space character
-            inv_char = '\u200B'
-            result += ''.join(
+            inv_char = "\u200b"
+            result += "".join(
                 [
                     f'| {parameter_str if parameter_str != "" and parameter_str != None else inv_char: <{sp[0]}} ',
                     f'| {tool_str if tool_str != "" and tool_str != None else inv_char: <{sp[1]}} ',
@@ -399,7 +394,7 @@ def markdown_summary(datasheet, runtime_options, results, result_types):
                 ]
             )
 
-    result += '\n'
+    result += "\n"
     return result
 
 
@@ -409,22 +404,22 @@ def uchar_sub(string):
     """
 
     ucode_list = [
-        '\u00b5',
-        '\u00b0',
-        '\u03c3',
-        '\u03a9',
-        '\u00b2',
-        '\u221a',
-        '\u03c1',
+        "\u00b5",
+        "\u00b0",
+        "\u03c3",
+        "\u03a9",
+        "\u00b2",
+        "\u221a",
+        "\u03c1",
     ]
     text_list = [
-        '{micro}',
-        '{degrees}',
-        '{sigma}',
-        '{ohms}',
-        '{squared}',
-        '{sqrt}',
-        '{rho}',
+        "{micro}",
+        "{degrees}",
+        "{sigma}",
+        "{ohms}",
+        "{squared}",
+        "{sqrt}",
+        "{rho}",
     ]
 
     idx = 0
