@@ -14,6 +14,8 @@
 
 from .parameter_manager import ParameterManager
 
+from .registry import register_tool, get_tools, find_tool
+
 from .parameter_netgen_lvs import ParameterNetgenLVS
 from .parameter_magic_drc import ParameterMagicDRC
 from .parameter_magic_area import ParameterMagicArea

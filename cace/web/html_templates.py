@@ -1,7 +1,6 @@
 import jinja2
 
-PROGRESS_TEMPLATE = jinja2.Template(
-    """
+PROGRESS_TEMPLATE = jinja2.Template("""
 <table id="progress_table">
   <thead>
     <tr>
@@ -35,11 +34,9 @@ PROGRESS_TEMPLATE = jinja2.Template(
 <button type="button" class="btn btn-danger" id="cancelbtn" onclick="sendData({ 'task': 'cancel_sims' });">Cancel Simulations</button>
 <br>
 <br>
-"""
-)
+""")
 
-RESULTS_SUMMARY_TEMPLATE = jinja2.Template(
-    """
+RESULTS_SUMMARY_TEMPLATE = jinja2.Template("""
 <table>
   <thead>
     <tr>
@@ -72,13 +69,10 @@ RESULTS_SUMMARY_TEMPLATE = jinja2.Template(
     {% endfor %}
   </tbody>
 </table>
-"""
-)
+""")
 
-RESULTS_PLOTS_TEMPLATE = jinja2.Template(
-    """
+RESULTS_PLOTS_TEMPLATE = jinja2.Template("""
 {% for div in divs %}
 {{ div | safe }}
 {% endfor %}
-"""
-)
+""")

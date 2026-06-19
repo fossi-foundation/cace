@@ -44,15 +44,7 @@ from ..logging import (
     err,
 )
 
-registered_parameters = {}
-
-
-def register_parameter(name):
-    def inner(cls):
-        registered_parameters[name] = cls
-        return cls
-
-    return inner
+from .registry import find_tool
 
 
 class ParameterManager:
@@ -63,9 +55,7 @@ class ParameterManager:
     manipulate it.
     """
 
-    def __init__(
-        self, datasheet={}, max_runs=None, run_path=None, max_jobs=None
-    ):
+    def __init__(self, datasheet={}, max_runs=None, run_path=None, max_jobs=None):
         """Initialize the object with a datasheet"""
         self.datasheet = datasheet
         self.max_runs = max_runs
@@ -85,20 +75,20 @@ class ParameterManager:
         self.runtime_options = {}
 
         self.default_runtime_options = {
-            'debug': False,
-            'netlist_source': 'schematic',
-            'sequential': False,
-            'noplot': False,  # TODO test
-            'parallel_parameters': 4,
-            'filename': None,
+            "debug": False,
+            "netlist_source": "schematic",
+            "sequential": False,
+            "noplot": False,  # TODO test
+            "parallel_parameters": 4,
+            "filename": None,
         }
 
         self.set_default_runtime_options()
 
         self.default_paths = {
-            'templates': 'cace/templates',
-            'scripts': 'cace/scripts',
-            'runs': 'runs',
+            "templates": "cace/templates",
+            "scripts": "cace/scripts",
+            "runs": "runs",
         }
 
         self.set_default_paths()
@@ -111,7 +101,7 @@ class ParameterManager:
 
         self.jobs_sem = CustomSemaphore(value=self.max_jobs)
 
-        info(f'Maximum number of jobs is {self.max_jobs}.')
+        info(f"Maximum number of jobs is {self.max_jobs}.")
 
     ### datasheet functions ###
 
@@ -123,50 +113,48 @@ class ParameterManager:
         """
 
         if not os.path.isfile(datasheet_path):
-            err(f'File {datasheet_path} not found.')
+            err(f"File {datasheet_path} not found.")
             return 1
 
         [dspath, dsname] = os.path.split(datasheet_path)
 
         suffix = os.path.splitext(datasheet_path)[1]
 
-        if suffix == '.yaml':
+        if suffix == ".yaml":
             # Read the datasheet, new CACE YAML format version 5.0
             self.datasheet = cace_read_yaml(datasheet_path)
-        elif suffix == '.txt':
+        elif suffix == ".txt":
             self.datasheet = cace_read(datasheet_path)
         else:
-            err(f'Unsupported file extension: {suffix}')
+            err(f"Unsupported file extension: {suffix}")
             return 1
 
         # Datasheet is invalid
         if self.datasheet == None:
             return 1
 
-        self.runtime_options['filename'] = dsname
+        self.runtime_options["filename"] = dsname
 
         # CACE should be run from the location of the datasheet's root
         # directory.  Typically, the datasheet is in the "cace" subdirectory
         # and "root" is "..".
 
         rootpath = None
-        paths = self.datasheet['paths']
-        if 'root' in paths:
-            rootpath = paths['root']
+        paths = self.datasheet["paths"]
+        if "root" in paths:
+            rootpath = paths["root"]
 
         if rootpath:
             dspath = os.path.join(dspath, rootpath)
-            paths['root'] = '.'
+            paths["root"] = "."
 
         os.chdir(dspath)
-        info(
-            f"Working directory set to '{dspath}' ('{os.path.abspath(dspath)}')."
-        )
-        os.environ['CACE_ROOT'] = os.path.abspath(dspath)
+        info(f"Working directory set to '{dspath}' ('{os.path.abspath(dspath)}').")
+        os.environ["CACE_ROOT"] = os.path.abspath(dspath)
 
         # Set the PDK variable
-        if self.datasheet['PDK']:
-            os.environ['PDK'] = self.datasheet['PDK']
+        if self.datasheet["PDK"]:
+            os.environ["PDK"] = self.datasheet["PDK"]
 
         # Make sure all runtime options exist
         self.set_default_runtime_options()
@@ -197,7 +185,7 @@ class ParameterManager:
             if os.path.isfile(item):
                 fileext = os.path.splitext(item)[1]
                 basename = os.path.splitext(item)[0]
-                if fileext == '.yaml':
+                if fileext == ".yaml":
                     if basename == dirname:
                         info(f"Loading datasheet from '{item}'.")
                         return self.load_datasheet(item, init_run_dir)
@@ -209,29 +197,27 @@ class ParameterManager:
                     if os.path.isfile(subitemref):
                         fileext = os.path.splitext(subitem)[1]
                         basename = os.path.splitext(subitem)[0]
-                        if fileext == '.yaml':
+                        if fileext == ".yaml":
                             if basename == dirname:
                                 info(f"Loading datasheet from '{subitemref}'.")
-                                return self.load_datasheet(
-                                    subitemref, init_run_dir
-                                )
+                                return self.load_datasheet(subitemref, init_run_dir)
 
-        info('No datasheet found in local project (YAML file).')
+        info("No datasheet found in local project (YAML file).")
         return 1
 
     def save_datasheet(self, path):
-        info(f'Writing output file {path}')
+        info(f"Writing output file {path}")
 
         suffix = os.path.splitext(path)[1]
 
-        if suffix == '.yaml':
+        if suffix == ".yaml":
             # Write the result in CACE YAML format version 5.0
             new_datasheet = self.datasheet.copy()
 
             # Set version to 5.0
-            new_datasheet['cace_format'] = 5.0
+            new_datasheet["cace_format"] = 5.0
 
-            with open(os.path.join(path), 'w') as outfile:
+            with open(os.path.join(path), "w") as outfile:
                 yaml.dump(
                     new_datasheet,
                     outfile,
@@ -240,7 +226,7 @@ class ParameterManager:
                     allow_unicode=True,
                 )
         else:
-            err(f'Unsupported file extension: {suffix}')
+            err(f"Unsupported file extension: {suffix}")
 
     def set_datasheet(self, datasheet):
         """Set a new datasheet"""
@@ -259,10 +245,10 @@ class ParameterManager:
         )
 
     def generate_documentation(self):
-        if 'documentation' in self.datasheet['paths']:
+        if "documentation" in self.datasheet["paths"]:
             doc_path = os.path.join(
-                self.datasheet['paths']['root'],
-                self.datasheet['paths']['documentation'],
+                self.datasheet["paths"]["root"],
+                self.datasheet["paths"]["documentation"],
             )
 
             info(f"Generating documentation in '{os.path.relpath(doc_path)}'")
@@ -281,52 +267,50 @@ class ParameterManager:
                 self.result_types,
             )
             summarypath = os.path.join(
-                self.datasheet['paths']['root'],
-                self.datasheet['paths']['documentation'],
+                self.datasheet["paths"]["root"],
+                self.datasheet["paths"]["documentation"],
                 f'{self.datasheet["name"]}_{self.runtime_options["netlist_source"]}.md',
             )
-            with open(summarypath, 'w') as ofile:
+            with open(summarypath, "w") as ofile:
                 ofile.write(summary)
 
                 # Save the plots
-                ofile.write(f'\n## Plots\n')
+                ofile.write(f"\n## Plots\n")
 
-                for parameter in self.datasheet['parameters']:
-                    if 'plot' in self.datasheet['parameters'][parameter]:
+                for parameter in self.datasheet["parameters"]:
+                    if "plot" in self.datasheet["parameters"][parameter]:
                         plotpath = os.path.join(
-                            self.datasheet['paths']['root'],
-                            self.datasheet['paths']['documentation'],
+                            self.datasheet["paths"]["root"],
+                            self.datasheet["paths"]["documentation"],
                             f'{self.datasheet["name"]}',
                             f'{self.runtime_options["netlist_source"]}',
                         )
                         mkdirp(plotpath)
 
-                        for named_plot in self.datasheet['parameters'][
-                            parameter
-                        ]['plot']:
+                        for named_plot in self.datasheet["parameters"][parameter][
+                            "plot"
+                        ]:
 
                             # File format
-                            suffix = '.png'
+                            suffix = ".png"
                             if (
-                                'suffix'
-                                in self.datasheet['parameters'][parameter][
-                                    'plot'
-                                ][named_plot]
+                                "suffix"
+                                in self.datasheet["parameters"][parameter]["plot"][
+                                    named_plot
+                                ]
                             ):
-                                suffix = self.datasheet['parameters'][
-                                    parameter
-                                ]['plot'][named_plot]['suffix']
+                                suffix = self.datasheet["parameters"][parameter][
+                                    "plot"
+                                ][named_plot]["suffix"]
 
                             # Filename for the plot
-                            filename = f'{named_plot}{suffix}'
+                            filename = f"{named_plot}{suffix}"
 
                             param_dir = os.path.abspath(
                                 os.path.join(
                                     self.run_dir,
-                                    'parameters',
-                                    self.datasheet['parameters'][parameter][
-                                        'name'
-                                    ],
+                                    "parameters",
+                                    self.datasheet["parameters"][parameter]["name"],
                                 )
                             )
 
@@ -334,11 +318,9 @@ class ParameterManager:
                             destination = os.path.join(plotpath, filename)
 
                             # Only copy if the file exists
-                            if os.path.exists(source) and os.path.isfile(
-                                source
-                            ):
+                            if os.path.exists(source) and os.path.isfile(source):
                                 shutil.copy(source, destination)
-                                ofile.write(f'\n## {named_plot}\n')
+                                ofile.write(f"\n## {named_plot}\n")
 
                                 ofile.write(
                                     f'\n![{named_plot}]({os.path.join(".", self.datasheet["name"], self.runtime_options["netlist_source"], filename)})\n'
@@ -353,22 +335,22 @@ class ParameterManager:
         param = self.find_parameter(pname)
 
         if not param:
-            warn(f'Could not duplicate parameter {pname}')
+            warn(f"Could not duplicate parameter {pname}")
             return
 
         newparam = param.copy()
 
         # Make the copied parameter editable
-        newparam['editable'] = True
+        newparam["editable"] = True
 
         # Adjsut the name
-        newparam['name'] += '_copy'
+        newparam["name"] += "_copy"
 
         # Append this to the electrical parameter list after the item being copied
-        if 'display' in param:
-            newparam['display'] = param['display'] + ' (copy)'
+        if "display" in param:
+            newparam["display"] = param["display"] + " (copy)"
 
-        eparams = self.datasheet['electrical_parameters']
+        eparams = self.datasheet["electrical_parameters"]
         eidx = eparams.index(param)
         eparams.insert(eidx + 1, newparam)
 
@@ -376,10 +358,10 @@ class ParameterManager:
         param = self.find_parameter(pname)
 
         if not param:
-            warn(f'Could not delete parameter {pname}')
+            warn(f"Could not delete parameter {pname}")
             return
 
-        eparams = self.datasheet['electrical_parameters']
+        eparams = self.datasheet["electrical_parameters"]
         eidx = eparams.index(param)
         eparams.pop(eidx)
 
@@ -399,13 +381,13 @@ class ParameterManager:
         """Sane default values"""
 
         # Make sure runtime options exist
-        if not 'paths' in self.datasheet:
-            self.datasheet['paths'] = {}
+        if not "paths" in self.datasheet:
+            self.datasheet["paths"] = {}
 
         # Init with default value if key does not exist
         for key, value in self.default_paths.items():
-            if not key in self.datasheet['paths']:
-                self.datasheet['paths'][key] = value
+            if not key in self.datasheet["paths"]:
+                self.datasheet["paths"][key] = value
 
     def set_runtime_options(self, key, value):
         self.runtime_options[key] = value
@@ -423,41 +405,39 @@ class ParameterManager:
         return self.runtime_options[key]
 
     def get_path(self, key):
-        if not key in self.datasheet['paths']:
+        if not key in self.datasheet["paths"]:
             dbg(f'Path "{key}" not in paths')
             dbg(f'Setting path "{key}" to "{key}"')
-            self.datasheet['paths'][key] = key
+            self.datasheet["paths"][key] = key
 
-        return self.datasheet['paths'][key]
+        return self.datasheet["paths"][key]
 
     def validate_runtime_options(self):
         """Make sure the runtime options contain valid values"""
 
-        valid_sources = ['schematic', 'layout', 'pex', 'rcx', 'best']
+        valid_sources = ["schematic", "layout", "pex", "rcx", "best"]
 
         # Check for valid sources
-        if not self.runtime_options['netlist_source'] in valid_sources:
-            err(
-                f'Invalid netlist source: {self.runtime_options["netlist_source"]}'
-            )
+        if not self.runtime_options["netlist_source"] in valid_sources:
+            err(f'Invalid netlist source: {self.runtime_options["netlist_source"]}')
 
         # If a magic layout is given, make sure layout is also defined
-        if 'magic' in self.datasheet['paths']:
-            if not 'layout' in self.datasheet['paths']:
+        if "magic" in self.datasheet["paths"]:
+            if not "layout" in self.datasheet["paths"]:
                 # Default layout path
-                self.datasheet['paths']['layout'] = 'gds'
+                self.datasheet["paths"]["layout"] = "gds"
 
         # Replace "best" with the best possible source
-        if self.runtime_options['netlist_source'] == 'best':
+        if self.runtime_options["netlist_source"] == "best":
             # If a layout is given, the best source is rcx
-            if 'layout' in self.datasheet['paths']:
-                self.runtime_options['netlist_source'] = 'rcx'
+            if "layout" in self.datasheet["paths"]:
+                self.runtime_options["netlist_source"] = "rcx"
             # Else only schematic is possible
             else:
-                self.runtime_options['netlist_source'] = 'schematic'
+                self.runtime_options["netlist_source"] = "schematic"
 
-        if not self.runtime_options['parallel_parameters'] > 0:
-            err(f'parallel_parameters must be at least 1')
+        if not self.runtime_options["parallel_parameters"] > 0:
+            err(f"parallel_parameters must be at least 1")
 
         # TODO check that other keys exist
 
@@ -466,7 +446,7 @@ class ParameterManager:
     def get_all_pnames(self):
         """Return all parameter names"""
 
-        pnames = list(self.datasheet['parameters'].keys())
+        pnames = list(self.datasheet["parameters"].keys())
 
         return pnames
 
@@ -475,41 +455,75 @@ class ParameterManager:
         Searches for the parameter with the name pname
         """
 
-        if pname in self.datasheet['parameters']:
-            return self.datasheet['parameters'][pname]
+        if pname in self.datasheet["parameters"]:
+            return self.datasheet["parameters"][pname]
 
-        warn(f'Unknown parameter: {pname}')
+        warn(f"Unknown parameter: {pname}")
         return None
 
     def param_set_status(self, pname, status):
         param = self.find_parameter(pname)
         if param:
-            param['status'] = status
+            param["status"] = status
 
     def queue_parameter(
         self, pname, start_cb=None, end_cb=None, cancel_cb=None, step_cb=None
     ):
         """Queue a parameter for later execution"""
 
-        paths = self.datasheet['paths']
-        pdk = self.datasheet['PDK']
+        paths = self.datasheet["paths"]
+        pdk = self.datasheet["PDK"]
 
-        if pname in self.datasheet['parameters']:
+        if pname in self.datasheet["parameters"]:
+            param = self.datasheet["parameters"][pname]
 
-            param = self.datasheet['parameters'][pname]
-            tool = param['tool']
-
-            # Get the name of the tool
-            if isinstance(tool, str):
-                toolname = tool
+            # Get the tool name and its variables
+            if isinstance(param["tool"], str):
+                toolname = param["tool"]
+                variables = {}
             else:
-                toolname = list(tool.keys())[0]
+                toolname = list(param["tool"].keys())[0]
+                variables = param["tool"][toolname]
 
-            if toolname in registered_parameters.keys():
-                cls = registered_parameters[toolname]
+            if cls := find_tool(toolname):
+
+                print("-----------")
+                print(toolname)
+                print(variables)
+
+                processed_variables = {}
+
+                for config_var in cls.config_vars:
+                    if config_var.name in variables:
+                        value = variables[config_var.name]
+                        explicitly_specified = True
+                    else:
+                        explicitly_specified = False
+                        value = None
+
+                    key_path = f"{pname}.{cls.id}.{config_var.name}"
+
+                    print(key_path)
+                    print(value)
+                    print(config_var.default)
+                    print(config_var.type)
+
+                    # Validate the types
+                    val = config_var._Variable__process(
+                        key_path=key_path,
+                        value=value,
+                        default=config_var.default,
+                        validating_type=config_var.type,
+                        explicitly_specified=explicitly_specified,
+                    )
+
+                    processed_variables[config_var.name] = val
+
+                print(processed_variables)
 
                 new_sim_param = cls(
                     pname,
+                    processed_variables,
                     param,
                     self.datasheet,
                     pdk,
@@ -526,7 +540,7 @@ class ParameterManager:
                     step_cb,
                 )
 
-                dbg(f'Inserting parameter {pname} into queue.')
+                dbg(f"Inserting parameter {pname} into queue.")
 
                 with self.queued_lock:
                     self.queued_threads.insert(0, new_sim_param)
@@ -534,13 +548,13 @@ class ParameterManager:
                 return
 
             else:
-                err(f'Unknown evaluation tool: {toolname}.')
+                err(f"Unknown evaluation tool: {toolname}.")
                 return
 
-        warn(f'Unknown parameter {pname}')
+        warn(f"Unknown parameter {pname}")
 
-        warn('Available parameters are:')
-        for pname in self.datasheet['parameters']:
+        warn("Available parameters are:")
+        for pname in self.datasheet["parameters"]:
             warn(pname)
 
     def prune_running_threads(self):
@@ -555,15 +569,13 @@ class ParameterManager:
         for t in self.running_threads:
             if not t.is_alive() and t.started:
                 if t.pname in self.results:
-                    warn(f'{t.pname} already in results!')
+                    warn(f"{t.pname} already in results!")
                 self.results[t.pname] = t.results_dict
                 self.result_types[t.pname] = t.result_type
                 t.harvested = True
 
         # Remove completed threads
-        self.running_threads = [
-            t for t in self.running_threads if not t.harvested
-        ]
+        self.running_threads = [t for t in self.running_threads if not t.harvested]
 
         if needs_unlock:
             self.running_lock.release()
@@ -592,50 +604,42 @@ class ParameterManager:
 
             # Count the parameter threads that are not yet done
             num_running = sum(
-                1
-                for t in self.running_threads
-                if not t.done and not t.canceled
+                1 for t in self.running_threads if not t.done and not t.canceled
             )
 
         return num_running
 
     def prepare_run_dir(self):
 
-        self.design_dir = '.'
+        self.design_dir = "."
 
         # Create a new tag
-        tag = (
-            datetime.datetime.now()
-            .astimezone()
-            .strftime('RUN_%Y-%m-%d_%H-%M-%S')
-        )
+        tag = datetime.datetime.now().astimezone().strftime("RUN_%Y-%m-%d_%H-%M-%S")
 
-        run_path = self.datasheet['paths']['runs']
+        run_path = self.datasheet["paths"]["runs"]
 
         # Override runs dir with cli argument
         if self.run_path:
             run_path = self.run_path
 
         # Create new run dir
-        self.run_dir = os.path.abspath(
-            os.path.join(self.design_dir, run_path, tag)
-        )
+        self.run_dir = os.path.abspath(os.path.join(self.design_dir, run_path, tag))
 
         # Check if run dir already exists
-        runs = sorted(glob.glob(os.path.join(self.design_dir, run_path, '*')))
+        runs = sorted(glob.glob(os.path.join(self.design_dir, run_path, "*")))
 
         if self.run_dir in runs:
-            error('Run directory exists already. Please try again.')
+            error("Run directory exists already. Please try again.")
 
         info(f"Starting a new run with tag '{tag}'.")
         mkdirp(self.run_dir)
 
         # Delete the oldest runs if max_runs set
         if self.max_runs and len(runs) >= self.max_runs:
-            runs = runs[::-1]   # Reverse runs
+            runs = runs[::-1]  # Reverse runs
             # Select runs to remove
             remove = runs[self.max_runs - 1 :]
-            dbg(f'Removing run directories: {remove}')
+            dbg(f"Removing run directories: {remove}")
 
             for run in remove:
                 shutil.rmtree(run)
@@ -648,19 +652,15 @@ class ParameterManager:
         # of the netlist, so it has to be done here and cannot be
         # parallelized).
 
-        fullnetlistpath = regenerate_netlists(
-            self.datasheet, self.runtime_options
-        )
+        fullnetlistpath = regenerate_netlists(self.datasheet, self.runtime_options)
         if not fullnetlistpath:
-            err('Failed to regenerate project netlist, aborting.')
+            err("Failed to regenerate project netlist, aborting.")
             self.cancel_parameters(True)
             return
 
         # If mag files are given as layout, regenerate the gds if needed
         if regenerate_gds(self.datasheet, self.runtime_options):
-            err(
-                'Failed to regenerate GDSII layout from magic layout, aborting.'
-            )
+            err("Failed to regenerate GDSII layout from magic layout, aborting.")
             self.cancel_parameters(True)
             return
 
@@ -668,9 +668,7 @@ class ParameterManager:
         # the previous one hasn't completed yet
         if not self.worker_thread or not self.worker_thread.is_alive():
             # Start new worker thread to start parameter threads
-            self.worker_thread = threading.Thread(
-                target=self.run_parameters_thread
-            )
+            self.worker_thread = threading.Thread(target=self.run_parameters_thread)
             self.worker_thread.start()
 
     def run_parameters_thread(self):
@@ -681,7 +679,7 @@ class ParameterManager:
             # Check whether we can start another parameter in parallel
             if (
                 self.num_running_parameters()
-                < self.runtime_options['parallel_parameters']
+                < self.runtime_options["parallel_parameters"]
             ):
                 param_thread = None
 
@@ -695,7 +693,7 @@ class ParameterManager:
                             self.running_threads.append(param_thread)
 
                 if param_thread and not param_thread.canceled:
-                    dbg(f'Running parameter {param_thread.pname}')
+                    dbg(f"Running parameter {param_thread.pname}")
                     param_thread.start()
 
             # Else wait until another parameter has completed
@@ -767,7 +765,7 @@ class ParameterManager:
             # Get all threads that should be canceled
             # Maybe there are multiple threads with the same name
             cancel_threads = [
-                t for t in self.queued_threads if t.param['name'] == pname
+                t for t in self.queued_threads if t.param["name"] == pname
             ]
 
             for param_thread in cancel_threads:
@@ -790,5 +788,5 @@ class ParameterManager:
 
             for param_thread in self.running_threads:
                 # TODO also check source
-                if param_thread.param['name'] == pname:
+                if param_thread.param["name"] == pname:
                     param_thread.cancel(no_cb)

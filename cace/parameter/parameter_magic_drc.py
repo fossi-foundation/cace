@@ -15,10 +15,16 @@
 import os
 import re
 import sys
+from typing import (
+    Optional,
+    List,
+    Any,
+)
 
+from ..config import Variable, Result
 from ..common.common import run_subprocess, get_magic_rcfile, get_layout_path
-from .parameter import Parameter, ResultType, Argument, Result
-from .parameter_manager import register_parameter
+from .parameter import Parameter, ResultType, NamedResult
+from .registry import register_parameter
 from ..logging import (
     dbg,
     verbose,
@@ -31,11 +37,36 @@ from ..logging import (
 )
 
 
-@register_parameter('magic_drc')
+@register_parameter("magic_drc")
 class ParameterMagicDRC(Parameter):
     """
-    Run magic drc
+    Run DRC using magic.
     """
+
+    id = "Magic.DRC"
+    name = "Design Rule Check (Magic)"
+
+    config_vars = [
+        Variable(
+            "args",
+            Optional[List[str]],
+            "Additional arguments.",
+        ),
+        Variable(
+            "gds_flatten",
+            bool,
+            "Flatten the GDS before running the check.",
+            default=False,
+        ),
+    ]
+
+    config_results = [
+        Result(
+            "drc_errors",
+            Any,
+            "The number of DRC errors.",
+        ),
+    ]
 
     def __init__(
         self,
@@ -47,16 +78,11 @@ class ParameterMagicDRC(Parameter):
             **kwargs,
         )
 
-        self.add_result(Result('drc_errors'))
-
-        self.add_argument(Argument('args', [], False))
-        self.add_argument(Argument('gds_flatten', False, False))
-
     def is_runnable(self):
-        netlist_source = self.runtime_options['netlist_source']
+        netlist_source = self.runtime_options["netlist_source"]
 
-        if netlist_source == 'schematic':
-            info('Netlist source is schematic capture. Not running DRC.')
+        if netlist_source == "schematic":
+            info("Netlist source is schematic capture. Not running DRC.")
             self.result_type = ResultType.SKIPPED
             return False
 
@@ -73,63 +99,67 @@ class ParameterMagicDRC(Parameter):
             Run magic to get a DRC report
             """
 
-            projname = self.datasheet['name']
-            paths = self.datasheet['paths']
+            projname = self.datasheet["name"]
+            paths = self.datasheet["paths"]
 
-            info('Running magic to get layout DRC report.')
+            info("Running magic to get layout DRC report.")
 
             rcfile = get_magic_rcfile()
 
             # Get the path to the layout, prefer magic
-            (layout_filepath, is_magic) = get_layout_path(
+            layout_filepath, is_magic = get_layout_path(
                 projname, self.paths, check_magic=True
             )
 
             # Check if layout exists
             if not os.path.isfile(layout_filepath):
-                err('No layout found!')
+                err("No layout found!")
                 self.result_type = ResultType.ERROR
                 return
 
             # Run magic to get the bounds of the design geometry
             # Get triplet of area, width, and height
 
-            magic_input = ''
+            magic_input = ""
 
             if is_magic:
-                magic_input += f'path search +{os.path.abspath(os.path.dirname(layout_filepath))}\n'
-                magic_input += f'load {os.path.basename(layout_filepath)}\n'
+                magic_input += f"path search +{os.path.abspath(os.path.dirname(layout_filepath))}\n"
+                magic_input += f"load {os.path.basename(layout_filepath)}\n"
             else:
-                if self.get_argument('gds_flatten'):
-                    magic_input += 'gds flatglob *\n'
+                if self.config["gds_flatten"]:
+                    magic_input += "gds flatglob *\n"
                 else:
                     # sky130
-                    magic_input += 'gds flatglob guard_ring_gen*\n'
-                    magic_input += 'gds flatglob vias_gen*\n'
+                    magic_input += "gds flatglob guard_ring_gen*\n"
+                    magic_input += "gds flatglob vias_gen*\n"
                     # ihp-sg13g2
-                    magic_input += 'gds flatglob via_stack*\n'
-                magic_input += f'gds read {os.path.abspath(layout_filepath)}\n'
-                magic_input += f'load {projname}\n'
+                    magic_input += "gds flatglob via_stack*\n"
+                magic_input += f"gds read {os.path.abspath(layout_filepath)}\n"
+                magic_input += f"load {projname}\n"
 
-            magic_input += 'drc on\n'
-            magic_input += 'catch {drc style drc(full)}\n'
-            magic_input += 'select top cell\n'
-            magic_input += 'drc check\n'
-            magic_input += 'drc catchup\n'
-            magic_input += 'set dcount [drc list count total]\n'
+            magic_input += "drc on\n"
+            magic_input += "catch {drc style drc(full)}\n"
+            magic_input += "select top cell\n"
+            magic_input += "drc check\n"
+            magic_input += "drc catchup\n"
+            magic_input += "set dcount [drc list count total]\n"
             magic_input += 'puts stdout "drc = $dcount"\n'
             magic_input += 'set outfile [open "magic_drc.out" w+]\n'
-            magic_input += 'set drc_why [drc listall why]\n'
-            magic_input += 'puts stdout $drc_why\n'
-            magic_input += 'foreach x $drc_why {\n'
-            magic_input += '   puts $outfile $x\n'
-            magic_input += '   puts stdout $x\n'
-            magic_input += '}\n'
+            magic_input += "set drc_why [drc listall why]\n"
+            magic_input += "puts stdout $drc_why\n"
+            magic_input += "foreach x $drc_why {\n"
+            magic_input += "   puts $outfile $x\n"
+            magic_input += "   puts stdout $x\n"
+            magic_input += "}\n"
+
+            arguments = ["-dnull", "-noconsole", "-rcfile", rcfile]
+
+            if self.config["args"]:
+                arguments.extend(self.config["args"])
 
             returncode = self.run_subprocess(
-                'magic',
-                ['-dnull', '-noconsole', '-rcfile', rcfile]
-                + self.get_argument('args'),
+                "magic",
+                arguments,
                 input=magic_input,
                 cwd=self.param_dir,
             )
@@ -137,14 +167,14 @@ class ParameterMagicDRC(Parameter):
         if self.step_cb:
             self.step_cb(self.param)
 
-        magrex = re.compile('drc[ \t]+=[ \t]+([0-9.]+)[ \t]*$')
+        magrex = re.compile("drc[ \t]+=[ \t]+([0-9.]+)[ \t]*$")
 
-        stdoutfilepath = os.path.join(self.param_dir, 'magic_stdout.out')
-        drcfilepath = os.path.join(self.param_dir, 'magic_drc.out')
+        stdoutfilepath = os.path.join(self.param_dir, "magic_stdout.out")
+        drcfilepath = os.path.join(self.param_dir, "magic_drc.out")
 
         if not os.path.isfile(drcfilepath):
-            err('No output file generated by magic!')
-            err(f'Expected file: {drcfilepath}')
+            err("No output file generated by magic!")
+            err(f"Expected file: {drcfilepath}")
             self.result_type = ResultType.ERROR
             return
 
@@ -153,7 +183,7 @@ class ParameterMagicDRC(Parameter):
         )
 
         drccount = None
-        with open(stdoutfilepath, 'r') as stdout_file:
+        with open(stdoutfilepath, "r") as stdout_file:
 
             for line in stdout_file.readlines():
                 lmatch = magrex.match(line)
@@ -162,7 +192,7 @@ class ParameterMagicDRC(Parameter):
 
         if drccount != None:
             self.result_type = ResultType.SUCCESS
-            self.get_result('drc_errors').values = [drccount]
+            self.get_result("drc_errors").values = [drccount]
 
         # Increment progress bar
         if self.step_cb:

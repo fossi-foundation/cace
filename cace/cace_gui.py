@@ -82,12 +82,12 @@ class ConfirmDialog(Dialog):
 
     def body(self, master, warning, seed):
         ttk.Label(master, text=warning, wraplength=500).grid(
-            row=0, columnspan=2, sticky='wns'
+            row=0, columnspan=2, sticky="wns"
         )
         return self
 
     def apply(self):
-        return 'okay'
+        return "okay"
 
 
 class CACEGui(ttk.Frame):
@@ -98,19 +98,19 @@ class CACEGui(ttk.Frame):
         self.root = parent
         self.parameter_manager = ParameterManager(max_runs=max_runs, jobs=jobs)
         self.init_gui()
-        parent.protocol('WM_DELETE_WINDOW', self.on_quit)
+        parent.protocol("WM_DELETE_WINDOW", self.on_quit)
 
     def on_quit(self):
         """Exits program."""
         if not self.check_saved():
-            warning = 'Warning:  Simulation results have not been saved.'
+            warning = "Warning:  Simulation results have not been saved."
             confirm = ConfirmDialog(self, warning).result
-            if not confirm == 'okay':
-                info('Quit canceled.')
+            if not confirm == "okay":
+                info("Quit canceled.")
                 return
 
         # Cancel all queued and running parameters and join them
-        info('Stopping all simulations for shutdown.')
+        info("Stopping all simulations for shutdown.")
         self.parameter_manager.cancel_parameters(no_cb=True)
         self.parameter_manager.join_parameters()
 
@@ -121,9 +121,9 @@ class CACEGui(ttk.Frame):
 
     def on_mousewheel(self, event):
         if event.num == 5:
-            self.datasheet_viewer.yview_scroll(1, 'units')
+            self.datasheet_viewer.yview_scroll(1, "units")
         elif event.num == 4:
-            self.datasheet_viewer.yview_scroll(-1, 'units')
+            self.datasheet_viewer.yview_scroll(-1, "units")
 
     def init_gui(self):
         """Builds GUI."""
@@ -152,26 +152,26 @@ class CACEGui(ttk.Frame):
         # Variables used by option menus and other stuff
         self.origin = tkinter.StringVar(self)
         self.cur_project = tkinter.StringVar(self)
-        self.filename = '(no selection)'
+        self.filename = "(no selection)"
         self.logfile = None
         self.parameter_widgets = {}
 
         # Root window title
-        self.root.title('CACE')
-        self.root.option_add('*tearOff', 'FALSE')
-        self.pack(side='top', fill='both', expand='true')
+        self.root.title("CACE")
+        self.root.option_add("*tearOff", "FALSE")
+        self.pack(side="top", fill="both", expand="true")
 
         self.pane = tkinter.PanedWindow(
-            self, orient='vertical', sashrelief='groove', sashwidth=6
+            self, orient="vertical", sashrelief="groove", sashwidth=6
         )
         self.toppane = ttk.Frame(self.pane)
 
         self.toppane.title_frame = ttk.Frame(self.toppane)
-        self.toppane.title_frame.grid(column=0, row=2, sticky='nswe')
+        self.toppane.title_frame.grid(column=0, row=2, sticky="nswe")
         self.toppane.title_frame.datasheet_label = ttk.Label(
             self.toppane.title_frame,
-            text='CACE Datasheet:',
-            style='normal.TLabel',
+            text="CACE Datasheet:",
+            style="normal.TLabel",
         )
         self.toppane.title_frame.datasheet_label.grid(column=0, row=0, ipadx=5)
 
@@ -179,70 +179,62 @@ class CACEGui(ttk.Frame):
         self.toppane.title_frame.datasheet_select = ttk.Button(
             self.toppane.title_frame,
             text=self.filename,
-            style='normal.TButton',
+            style="normal.TButton",
             command=self.choose_datasheet,
         )
-        self.toppane.title_frame.datasheet_select.grid(
-            column=1, row=0, ipadx=5
-        )
+        self.toppane.title_frame.datasheet_select.grid(column=1, row=0, ipadx=5)
 
         ToolTip(
             self.toppane.title_frame.datasheet_select,
-            text='Select new datasheet file',
+            text="Select new datasheet file",
         )
 
         # Show path to datasheet
         self.toppane.title_frame.path_label = ttk.Label(
-            self.toppane.title_frame, text=self.filename, style='normal.TLabel'
+            self.toppane.title_frame, text=self.filename, style="normal.TLabel"
         )
-        self.toppane.title_frame.path_label.grid(
-            column=2, row=0, ipadx=5, padx=10
-        )
+        self.toppane.title_frame.path_label.grid(column=2, row=0, ipadx=5, padx=10)
 
         # Spacer in middle moves selection button to right
         self.toppane.title_frame.sep_label = ttk.Label(
-            self.toppane.title_frame, text=' ', style='normal.TLabel'
+            self.toppane.title_frame, text=" ", style="normal.TLabel"
         )
-        self.toppane.title_frame.sep_label.grid(
-            column=3, row=0, ipadx=5, padx=10
-        )
+        self.toppane.title_frame.sep_label.grid(column=3, row=0, ipadx=5, padx=10)
         self.toppane.title_frame.columnconfigure(3, weight=1)
         self.toppane.title_frame.rowconfigure(0, weight=0)
 
         # Selection for origin of netlist
         self.toppane.title_frame.origin_label = ttk.Label(
             self.toppane.title_frame,
-            text='Netlist from:',
-            style='normal.TLabel',
+            text="Netlist from:",
+            style="normal.TLabel",
         )
-        self.toppane.title_frame.origin_label.grid(
-            column=4, row=0, ipadx=5, padx=10
-        )
+        self.toppane.title_frame.origin_label.grid(column=4, row=0, ipadx=5, padx=10)
 
-        self.netlist_text = 'Schematic Capture'
+        self.netlist_text = "Schematic Capture"
         self.origin.set(self.netlist_text)
         self.toppane.title_frame.origin_select = ttk.OptionMenu(
             self.toppane.title_frame,
             self.origin,
-            'Schematic Capture',
-            'Schematic Capture',
-            'Layout Extracted',
-            'C Extracted',
-            'R-C Extracted',
-            style='blue.TMenubutton',
+            "Schematic Capture",
+            "Schematic Capture",
+            "Layout Extracted",
+            "C Extracted",
+            "R-C Extracted",
+            style="blue.TMenubutton",
             command=self.swap_results,
         )
         self.toppane.title_frame.origin_select.grid(column=5, row=0, ipadx=5)
 
         # ---------------------------------------------
-        ttk.Separator(self.toppane, orient='horizontal').grid(
-            column=0, row=3, sticky='news'
+        ttk.Separator(self.toppane, orient="horizontal").grid(
+            column=0, row=3, sticky="news"
         )
         # ---------------------------------------------
 
         # Datasheet information goes here when datasheet is loaded.
         self.mframe = ttk.Frame(self.toppane)
-        self.mframe.grid(column=0, row=4, sticky='news')
+        self.mframe.grid(column=0, row=4, sticky="news")
 
         # Row 4 (mframe) is expandable, the other rows are not.
         self.toppane.rowconfigure(0, weight=0)
@@ -265,107 +257,101 @@ class CACEGui(ttk.Frame):
         # Define the "quit" button and action
         self.bbar.quit_button = ttk.Button(
             self.bbar,
-            text='Quit',
+            text="Quit",
             command=self.on_quit,
-            style='normal.TButton',
+            style="normal.TButton",
         )
         self.bbar.quit_button.grid(column=0, row=0, padx=5)
 
         # Define the save button
         self.bbar.save_button = ttk.Button(
             self.bbar,
-            text='Save',
+            text="Save",
             command=self.save_results,
-            style='normal.TButton',
+            style="normal.TButton",
         )
         self.bbar.save_button.grid(column=1, row=0, padx=5)
 
         # Define the save-as button
         self.bbar.saveas_button = ttk.Button(
             self.bbar,
-            text='Save As',
+            text="Save As",
             command=self.save_manual,
-            style='normal.TButton',
+            style="normal.TButton",
         )
         self.bbar.saveas_button.grid(column=2, row=0, padx=5)
 
         # Also a load button
         self.bbar.load_button = ttk.Button(
             self.bbar,
-            text='Load',
+            text="Load",
             command=self.load_manual,
-            style='normal.TButton',
+            style="normal.TButton",
         )
         self.bbar.load_button.grid(column=3, row=0, padx=5)
 
         # Define the HTML generate button
         self.bbar.html_button = ttk.Button(
             self.bbar,
-            text='HTML',
+            text="HTML",
             command=self.generate_html,
-            style='normal.TButton',
+            style="normal.TButton",
         )
         self.bbar.html_button.grid(column=4, row=0, padx=5)
 
         # Define help button
         self.bbar.help_button = ttk.Button(
             self.bbar,
-            text='Help',
+            text="Help",
             command=self.help.open,
-            style='normal.TButton',
+            style="normal.TButton",
         )
         self.bbar.help_button.grid(column=5, row=0, padx=5)
 
         # Define settings button
         self.bbar.settings_button = ttk.Button(
             self.bbar,
-            text='Settings',
+            text="Settings",
             command=self.settings.open,
-            style='normal.TButton',
+            style="normal.TButton",
         )
         self.bbar.settings_button.grid(column=6, row=0, padx=5)
 
-        ToolTip(self.bbar.quit_button, text='Exit characterization tool')
-        ToolTip(
-            self.bbar.save_button, text='Save current characterization state'
-        )
-        ToolTip(
-            self.bbar.saveas_button, text='Save current characterization state'
-        )
-        ToolTip(self.bbar.html_button, text='Generate HTML output')
-        ToolTip(
-            self.bbar.load_button, text='Load characterization state from file'
-        )
-        ToolTip(self.bbar.help_button, text='Start help tool')
+        ToolTip(self.bbar.quit_button, text="Exit characterization tool")
+        ToolTip(self.bbar.save_button, text="Save current characterization state")
+        ToolTip(self.bbar.saveas_button, text="Save current characterization state")
+        ToolTip(self.bbar.html_button, text="Generate HTML output")
+        ToolTip(self.bbar.load_button, text="Load characterization state from file")
+        ToolTip(self.bbar.help_button, text="Start help tool")
         ToolTip(
             self.bbar.settings_button,
-            text='Manage characterization tool settings',
+            text="Manage characterization tool settings",
         )
 
         # Inside frame with main electrical parameter display and scrollbar
         # To make the frame scrollable, it must be a frame inside a canvas.
         self.datasheet_viewer = tkinter.Canvas(self.mframe)
-        self.datasheet_viewer.grid(row=0, column=0, sticky='nsew')
+        self.datasheet_viewer.grid(row=0, column=0, sticky="nsew")
         self.datasheet_viewer.dframe = ttk.Frame(
-            self.datasheet_viewer, style='bg.TFrame'
+            self.datasheet_viewer, style="bg.TFrame"
         )
         # Place the frame in the canvas
         self.datasheet_viewer.create_window(
             (0, 0),
             window=self.datasheet_viewer.dframe,
-            anchor='nw',
-            tags='self.frame',
+            anchor="nw",
+            tags="self.frame",
         )
 
         # Make sure the main window resizes, not the scrollbars.
         self.mframe.rowconfigure(0, weight=1)
         self.mframe.columnconfigure(0, weight=1)
         # X scrollbar for datasheet viewer
-        main_xscrollbar = ttk.Scrollbar(self.mframe, orient='horizontal')
-        main_xscrollbar.grid(row=1, column=0, sticky='nsew')
+        main_xscrollbar = ttk.Scrollbar(self.mframe, orient="horizontal")
+        main_xscrollbar.grid(row=1, column=0, sticky="nsew")
         # Y scrollbar for datasheet viewer
-        main_yscrollbar = ttk.Scrollbar(self.mframe, orient='vertical')
-        main_yscrollbar.grid(row=0, column=1, sticky='nsew')
+        main_yscrollbar = ttk.Scrollbar(self.mframe, orient="vertical")
+        main_yscrollbar.grid(row=0, column=1, sticky="nsew")
         # Attach console to scrollbars
         self.datasheet_viewer.config(xscrollcommand=main_xscrollbar.set)
         main_xscrollbar.config(command=self.datasheet_viewer.xview)
@@ -373,19 +359,19 @@ class CACEGui(ttk.Frame):
         main_yscrollbar.config(command=self.datasheet_viewer.yview)
 
         # Make sure that scrollwheel pans window
-        self.datasheet_viewer.bind_all('<Button-4>', self.on_mousewheel)
-        self.datasheet_viewer.bind_all('<Button-5>', self.on_mousewheel)
+        self.datasheet_viewer.bind_all("<Button-4>", self.on_mousewheel)
+        self.datasheet_viewer.bind_all("<Button-5>", self.on_mousewheel)
 
         # Set up configure callback
-        self.datasheet_viewer.dframe.bind('<Configure>', self.frame_configure)
+        self.datasheet_viewer.dframe.bind("<Configure>", self.frame_configure)
 
         # Add the panes once the internal geometry is known
         self.pane.add(self.toppane)
-        self.pane.paneconfig(self.toppane, stretch='first')
+        self.pane.paneconfig(self.toppane, stretch="first")
 
         # Pack the frames, bbar first so that it gets shrinked last
-        self.bbar.pack(side='bottom', fill='x', expand='false')
-        self.pane.pack(side='top', fill='both', expand='true')
+        self.bbar.pack(side="bottom", fill="x", expand="false")
+        self.pane.pack(side="top", fill="both", expand="true")
 
         # Initialize variables
 
@@ -402,15 +388,13 @@ class CACEGui(ttk.Frame):
         self.botpane = ttk.Frame(self.pane)
 
         self.botpane.console = ttk.Frame(self.botpane)
-        self.botpane.console.pack(side='top', fill='both', expand='true')
+        self.botpane.console.pack(side="top", fill="both", expand="true")
 
         # Add console to GUI
-        self.text_box = ConsoleText(
-            self.botpane.console, wrap='word', height=4
-        )
-        self.text_box.pack(side='left', fill='both', expand='true')
+        self.text_box = ConsoleText(self.botpane.console, wrap="word", height=4)
+        self.text_box.pack(side="left", fill="both", expand="true")
         console_scrollbar = ttk.Scrollbar(self.botpane.console)
-        console_scrollbar.pack(side='right', fill='y')
+        console_scrollbar.pack(side="right", fill="y")
         # attach console to scrollbar
         self.text_box.config(yscrollcommand=console_scrollbar.set)
         console_scrollbar.config(command=self.text_box.yview)
@@ -426,8 +410,8 @@ class CACEGui(ttk.Frame):
     def end_cb(self, param):
         """Update parameter with results, used as callback"""
 
-        pname = param['name']
-        info(f'Simulation of {pname} has completed.')
+        pname = param["name"]
+        info(f"Simulation of {pname} has completed.")
 
         self.parameter_widgets[pname].update_param(
             self.parameter_manager.find_parameter(pname)
@@ -439,8 +423,8 @@ class CACEGui(ttk.Frame):
     def cancel_cb(self, param):
         """Update parameter with results, used as callback"""
 
-        pname = param['name']
-        info(f'Simulation of {pname} has been canceled.')
+        pname = param["name"]
+        info(f"Simulation of {pname} has been canceled.")
 
         self.parameter_widgets[pname].update_param(
             self.parameter_manager.find_parameter(pname)
@@ -452,38 +436,28 @@ class CACEGui(ttk.Frame):
     def simulate_param(self, pname, process=True):
         """Simulate a single parameter"""
 
+        self.parameter_manager.set_runtime_options("force", self.settings.get_force())
+        self.parameter_manager.set_runtime_options("keep", self.settings.get_keep())
         self.parameter_manager.set_runtime_options(
-            'force', self.settings.get_force()
+            "sequential", self.settings.get_sequential()
         )
+        self.parameter_manager.set_runtime_options("noplot", self.settings.get_noplot())
+        self.parameter_manager.set_runtime_options("debug", self.settings.get_debug())
         self.parameter_manager.set_runtime_options(
-            'keep', self.settings.get_keep()
-        )
-        self.parameter_manager.set_runtime_options(
-            'sequential', self.settings.get_sequential()
-        )
-        self.parameter_manager.set_runtime_options(
-            'noplot', self.settings.get_noplot()
-        )
-        self.parameter_manager.set_runtime_options(
-            'debug', self.settings.get_debug()
-        )
-        self.parameter_manager.set_runtime_options(
-            'parallel_parameters', self.settings.get_parallel_parameters()
+            "parallel_parameters", self.settings.get_parallel_parameters()
         )
 
         # From the GUI, simulation is forced, so clear any "skip" status.
         # TO DO:  "gray out" entries marked as "skip" and require entry to
         # be set to "active" before simulating.
-        self.parameter_manager.param_set_status(pname, 'active')
+        self.parameter_manager.param_set_status(pname, "active")
 
         self.parameter_manager.queue_parameter(
             pname, end_cb=self.end_cb, cancel_cb=self.cancel_cb
         )
 
         # Set the "Simulate" button to say "in progress"
-        self.parameter_widgets[pname].simulate_widget.configure(
-            text='(in progress)'
-        )
+        self.parameter_widgets[pname].simulate_widget.configure(text="(in progress)")
 
         self.update_simulate_all_button()
 
@@ -492,9 +466,7 @@ class CACEGui(ttk.Frame):
 
     def frame_configure(self, event):
         self.update_idletasks()
-        self.datasheet_viewer.configure(
-            scrollregion=self.datasheet_viewer.bbox('all')
-        )
+        self.datasheet_viewer.configure(scrollregion=self.datasheet_viewer.bbox("all"))
 
     def logstart(self):
         # Start a logfile (or append to it, if it already exists)
@@ -503,26 +475,25 @@ class CACEGui(ttk.Frame):
         if self.settings.get_log() == True:
             dataroot = os.path.splitext(self.filename)[0]
             if not self.logfile:
-                self.logfile = open(dataroot + '.log', 'a')
+                self.logfile = open(dataroot + ".log", "a")
 
                 # Print some initial information to the logfile.
-                self.logprint('-------------------------')
+                self.logprint("-------------------------")
                 self.logprint(
-                    'Starting new log file '
-                    + datetime.datetime.now().strftime('%c'),
+                    "Starting new log file " + datetime.datetime.now().strftime("%c"),
                     doflush=True,
                 )
 
     def logstop(self):
         if self.logfile:
-            self.logprint('-------------------------', doflush=True)
+            self.logprint("-------------------------", doflush=True)
             self.logfile.close()
             self.logfile = []
 
     def logprint(self, message, doflush=False):
         if self.logfile:
-            self.logfile.buffer.write(message.encode('utf-8'))
-            self.logfile.buffer.write('\n'.encode('utf-8'))
+            self.logfile.buffer.write(message.encode("utf-8"))
+            self.logfile.buffer.write("\n".encode("utf-8"))
             if doflush:
                 self.logfile.flush()
 
@@ -537,8 +508,8 @@ class CACEGui(ttk.Frame):
 
     def set_datasheet(self, datasheet_path):
         if self.logfile:
-            self.logprint('end of log.')
-            self.logprint('-------------------------', doflush=True)
+            self.logprint("end of log.")
+            self.logprint("-------------------------", doflush=True)
             self.logfile.close()
             self.logfile = None
 
@@ -553,10 +524,10 @@ class CACEGui(ttk.Frame):
 
     def update_filename(self):
 
-        self.filename = self.parameter_manager.get_runtime_options('filename')
+        self.filename = self.parameter_manager.get_runtime_options("filename")
 
         if not self.filename:
-            err('Filename for datasheet not set!')
+            err("Filename for datasheet not set!")
 
         self.toppane.title_frame.datasheet_select.configure(
             text=os.path.split(self.filename)[1]
@@ -601,19 +572,19 @@ class CACEGui(ttk.Frame):
             multiple=False,
             initialdir=os.getcwd(),
             filetypes=(
-                ('YAML File', '*.yaml'),
-                ('Text File', '*.txt'),
-                ('All Files', '*.*'),
+                ("YAML File", "*.yaml"),
+                ("Text File", "*.txt"),
+                ("All Files", "*.*"),
             ),
-            title='Find a datasheet.',
+            title="Find a datasheet.",
         )
-        if datasheet != '':
+        if datasheet != "":
             self.set_datasheet(datasheet)
 
     def topfilter(self, line):
         # Check output for ubiquitous "Reference value" lines and remove them.
         # This happens before logging both to the file and to the console.
-        refrex = re.compile('Reference value')
+        refrex = re.compile("Reference value")
         rmatch = refrex.match(line)
         if not rmatch:
             return line
@@ -623,9 +594,9 @@ class CACEGui(ttk.Frame):
     def spicefilter(self, line):
         # Check for the alarmist 'tran simulation interrupted' message and remove it.
         # Check for error or warning and print as stderr or stdout accordingly.
-        intrex = re.compile('tran simulation interrupted')
-        warnrex = re.compile('.*warning', re.IGNORECASE)
-        errrex = re.compile('.*error', re.IGNORECASE)
+        intrex = re.compile("tran simulation interrupted")
+        warnrex = re.compile(".*warning", re.IGNORECASE)
+        errrex = re.compile(".*error", re.IGNORECASE)
 
         imatch = intrex.match(line)
         if not imatch:
@@ -641,8 +612,8 @@ class CACEGui(ttk.Frame):
         if not output:
             return 0
 
-        warnrex = re.compile('.*warning', re.IGNORECASE)
-        errrex = re.compile('.*error', re.IGNORECASE)
+        warnrex = re.compile(".*warning", re.IGNORECASE)
+        errrex = re.compile(".*error", re.IGNORECASE)
 
         errors = 0
         outlines = output.splitlines()
@@ -650,7 +621,7 @@ class CACEGui(ttk.Frame):
             try:
                 wmatch = warnrex.match(line)
             except TypeError:
-                line = line.decode('utf-8')
+                line = line.decode("utf-8")
                 wmatch = warnrex.match(line)
             ematch = errrex.match(line)
             if ematch:
@@ -662,27 +633,19 @@ class CACEGui(ttk.Frame):
     def sim_all(self):
         # Make sure no simulation is running
         if self.parameter_manager.num_parameters() > 0:
-            warn('Simulation in progress must finish first.')
+            warn("Simulation in progress must finish first.")
             return
 
         # TODO set at startup and only change directly if necessary
+        self.parameter_manager.set_runtime_options("force", self.settings.get_force())
+        self.parameter_manager.set_runtime_options("keep", self.settings.get_keep())
         self.parameter_manager.set_runtime_options(
-            'force', self.settings.get_force()
+            "sequential", self.settings.get_sequential()
         )
+        self.parameter_manager.set_runtime_options("noplot", self.settings.get_noplot())
+        self.parameter_manager.set_runtime_options("debug", self.settings.get_debug())
         self.parameter_manager.set_runtime_options(
-            'keep', self.settings.get_keep()
-        )
-        self.parameter_manager.set_runtime_options(
-            'sequential', self.settings.get_sequential()
-        )
-        self.parameter_manager.set_runtime_options(
-            'noplot', self.settings.get_noplot()
-        )
-        self.parameter_manager.set_runtime_options(
-            'debug', self.settings.get_debug()
-        )
-        self.parameter_manager.set_runtime_options(
-            'parallel_parameters', self.settings.get_parallel_parameters()
+            "parallel_parameters", self.settings.get_parallel_parameters()
         )
 
         # Queue all of the parameters
@@ -697,7 +660,7 @@ class CACEGui(ttk.Frame):
     def stop_sims(self):
         # Check whether simulations are running
         if self.parameter_manager.num_parameters() == 0:
-            warn('No simulation running.')
+            warn("No simulation running.")
         else:
             # Cancel all queued and running parameters
             self.parameter_manager.cancel_parameters()
@@ -710,15 +673,15 @@ class CACEGui(ttk.Frame):
         # only one simulation is running
         if self.parameter_manager.num_parameters() == 0:
             self.allsimbutton.configure(
-                style='bluetitle.TButton',
-                text='Simulate All',
+                style="bluetitle.TButton",
+                text="Simulate All",
                 command=self.sim_all,
             )
         else:
             # Button now stops the simulations
             self.allsimbutton.configure(
-                style='redtitle.TButton',
-                text='Stop Simulations',
+                style="redtitle.TButton",
+                text="Stop Simulations",
                 command=self.stop_sims,
             )
 
@@ -727,12 +690,12 @@ class CACEGui(ttk.Frame):
 
         # Edit the conditions under which the parameter is tested.
         if (
-            'editable' in param and param['editable'] == True
+            "editable" in param and param["editable"] == True
         ) or self.settings.get_edit() == True:
             self.editparam.populate(param)
             self.editparam.open()
         else:
-            warn(f'Parameter {pname} is not editable')
+            warn(f"Parameter {pname} is not editable")
 
     def copy_param(self, pname):
         # Make a copy of the parameter (for editing)
@@ -759,36 +722,36 @@ class CACEGui(ttk.Frame):
 
         # Remove results from the window by clearing parameter results
         paramstodo = []
-        if 'parameters' in dsheet:
-            paramstodo.extend(dsheet['parameters'])
+        if "parameters" in dsheet:
+            paramstodo.extend(dsheet["parameters"])
 
         for param in paramstodo:
             # Fill frame with electrical parameter information
-            if 'max' in param:
-                maxrec = param['max']
-                if 'value' in maxrec:
-                    maxrec.pop('value')
-                if 'score' in maxrec:
-                    maxrec.pop('score')
-            if 'typ' in param:
-                typrec = param['typ']
-                if 'value' in typrec:
-                    typrec.pop('value')
-                if 'score' in typrec:
-                    typrec.pop('score')
-            if 'min' in param:
-                minrec = param['min']
-                if 'value' in minrec:
-                    minrec.pop('value')
-                if 'score' in minrec:
-                    minrec.pop('score')
-            if 'results' in param:
-                param.pop('results')
+            if "max" in param:
+                maxrec = param["max"]
+                if "value" in maxrec:
+                    maxrec.pop("value")
+                if "score" in maxrec:
+                    maxrec.pop("score")
+            if "typ" in param:
+                typrec = param["typ"]
+                if "value" in typrec:
+                    typrec.pop("value")
+                if "score" in typrec:
+                    typrec.pop("score")
+            if "min" in param:
+                minrec = param["min"]
+                if "value" in minrec:
+                    minrec.pop("value")
+                if "score" in minrec:
+                    minrec.pop("score")
+            if "results" in param:
+                param.pop("results")
 
-            if 'plot' in param:
-                plotrec = param['plot']
-                if 'status' in plotrec:
-                    plotrec.pop('status')
+            if "plot" in param:
+                plotrec = param["plot"]
+                if "status" in plotrec:
+                    plotrec.pop("status")
 
         # Regenerate datasheet view
         self.create_datasheet_view()
@@ -798,11 +761,11 @@ class CACEGui(ttk.Frame):
         # file if it predates the unannotated datasheet (that indicates
         # simulator failure, and no results).
         dspath = os.path.split(self.filename)[0]
-        if dspath == '':
-            dspath = '.'
-        dsdir = dspath + '/ngspice'
-        anno = dsdir + '/datasheet_' + suffix + '.json'
-        unanno = dsdir + '/datasheet.json'
+        if dspath == "":
+            dspath = "."
+        dsdir = dspath + "/ngspice"
+        anno = dsdir + "/datasheet_" + suffix + ".json"
+        unanno = dsdir + "/datasheet.json"
 
         if os.path.exists(anno):
             statbuf = os.stat(anno)
@@ -810,19 +773,19 @@ class CACEGui(ttk.Frame):
             if checktime >= mtimea:
                 # print('original = ' + str(checktime) + ' annotated = ' + str(mtimea))
                 err(
-                    'Error in simulation, no update to results.',
+                    "Error in simulation, no update to results.",
                     file=sys.stderr,
                 )
             elif statbuf.st_size == 0:
-                err('Error in simulation, no results.', file=sys.stderr)
-            elif os.path.splitext(anno)[1] == '.json':
-                with open(anno, 'r') as file:
+                err("Error in simulation, no results.", file=sys.stderr)
+            elif os.path.splitext(anno)[1] == ".json":
+                with open(anno, "r") as file:
                     self.parameter_manager.set_datasheet(json.load(file))
             else:
                 debug = self.settings.get_debug()
                 self.parameter_manager.set_datasheet(cace_read(file, debug))
         else:
-            err('Error in simulation, no update to results.', file=sys.stderr)
+            err("Error in simulation, no update to results.", file=sys.stderr)
 
         # Regenerate datasheet view
         self.create_datasheet_view()
@@ -836,8 +799,8 @@ class CACEGui(ttk.Frame):
 
         # Save to simulation directory (may want to change this)
         dsheet = self.parameter_manager.get_datasheet()
-        paths = dsheet['paths']
-        dsdir = os.path.join(dspath, paths['root'], paths['simulation'])
+        paths = dsheet["paths"]
+        dsdir = os.path.join(dspath, paths["root"], paths["simulation"])
 
         dfile = os.path.split(self.filename)[1]
         dfileroot = os.path.splitext(dfile)[0]
@@ -845,32 +808,30 @@ class CACEGui(ttk.Frame):
 
         # Output filename is the input datasheet filename + "_save",
         # and the same file extension.
-        doutname = dfileroot + '_save' + dfileext
+        doutname = dfileroot + "_save" + dfileext
         doutfile = os.path.join(dsdir, doutname)
 
-        if dfileext == '.json':
-            with open(doutfile, 'w') as ofile:
-                json.dump(
-                    dsheet, ofile, indent=4
-                )   # TODO inside parameter_manager
+        if dfileext == ".json":
+            with open(doutfile, "w") as ofile:
+                json.dump(dsheet, ofile, indent=4)  # TODO inside parameter_manager
         else:
             # NOTE:  This file contains the run-time settings dictionary
-            cace_write(dsheet, doutfile)   # TODO inside parameter_manager
+            cace_write(dsheet, doutfile)  # TODO inside parameter_manager
 
         self.last_save = os.path.getmtime(doutfile)
 
-        info('Characterization results saved.')
+        info("Characterization results saved.")
 
     def check_saved(self):
         # Check if there is a file 'datasheet_save' and if it is more
         # recent than 'datasheet_anno'.  If so, return True, else False.
 
         [dspath, dsname] = os.path.split(self.filename)
-        dsdir = dspath + '/ngspice'
+        dsdir = dspath + "/ngspice"
 
-        savefile = dsdir + '/datasheet_save.json'
+        savefile = dsdir + "/datasheet_save.json"
 
-        annofile = dsdir + '/datasheet_anno.json'
+        annofile = dsdir + "/datasheet_anno.json"
         if os.path.exists(annofile):
             annotime = os.path.getmtime(annofile)
 
@@ -883,38 +844,38 @@ class CACEGui(ttk.Frame):
                 savetime = os.path.getmtime(savefile)
                 # return True if (savetime > annotime) else False
                 if savetime > annotime:
-                    info('Save is more recent than sim, so no need to save.')
+                    info("Save is more recent than sim, so no need to save.")
                     return True
                 else:
-                    info('Sim is more recent than save, so need to save.')
+                    info("Sim is more recent than save, so need to save.")
                     return False
             else:
                 # There is a datasheet_anno file but no datasheet_save,
                 # so there are necessarily unsaved results.
-                warn('no datasheet_save, so any results have not been saved.')
+                warn("no datasheet_save, so any results have not been saved.")
                 return False
         else:
             # There is no datasheet_anno file, so datasheet_save
             # is either current or there have been no simulations.
-            warn('no datasheet_anno, so there are no results to save.')
+            warn("no datasheet_anno, so there are no results to save.")
             return True
 
     def save_manual(self, value={}):
         # Set initialdir to the project where datasheet is located
         dsparent = os.path.split(self.filename)[0]
-        filepath = self.parameter_manager.get_runtime_options('filename')
+        filepath = self.parameter_manager.get_runtime_options("filename")
 
         datasheet_path = filedialog.asksaveasfilename(
             initialdir=dsparent,
             confirmoverwrite=True,
             initialfile=os.path.splitext(os.path.basename(filepath))[0],
-            defaultextension='.yaml',
+            defaultextension=".yaml",
             filetypes=(
-                ('YAML File', '*.yaml'),
-                ('Text File', '*.txt'),
-                ('All Files', '*.*'),
+                ("YAML File", "*.yaml"),
+                ("Text File", "*.txt"),
+                ("All Files", "*.*"),
             ),
-            title='Select filename for saved datasheet',
+            title="Select filename for saved datasheet",
         )
 
         # Save the datasheet
@@ -929,14 +890,14 @@ class CACEGui(ttk.Frame):
             multiple=False,
             initialdir=dsparent,
             filetypes=(
-                ('YAML File', '*.yaml'),
-                ('Text File', '*.txt'),
-                ('All Files', '*.*'),
+                ("YAML File", "*.yaml"),
+                ("Text File", "*.txt"),
+                ("All Files", "*.*"),
             ),
-            title='Find a datasheet',
+            title="Find a datasheet",
         )
         if datasheet_path:
-            info('Reading file ' + datasheet_path)
+            info("Reading file " + datasheet_path)
 
             if self.parameter_manager.load_datasheet(datasheet_path, debug):
                 self.on_quit()
@@ -951,7 +912,7 @@ class CACEGui(ttk.Frame):
 
         # Make sure no parameters are currently scheduled
         if self.parameter_manager.num_parameters() > 0:
-            warn('Cannot change the netlist source: Parameters are running.')
+            warn("Cannot change the netlist source: Parameters are running.")
             self.origin.set(self.netlist_text)
             return
 
@@ -959,23 +920,21 @@ class CACEGui(ttk.Frame):
 
         # Get the netlist source from the text
         self.netlist_text = self.origin.get()
-        if self.netlist_text == 'Schematic Capture':
-            netlist_source = 'schematic'
-        elif self.netlist_text == 'Layout Extracted':
-            netlist_source = 'layout'
-        elif self.netlist_text == 'C Extracted':
-            netlist_source = 'pex'
-        elif self.netlist_text == 'R-C Extracted':
-            netlist_source = 'rcx'
+        if self.netlist_text == "Schematic Capture":
+            netlist_source = "schematic"
+        elif self.netlist_text == "Layout Extracted":
+            netlist_source = "layout"
+        elif self.netlist_text == "C Extracted":
+            netlist_source = "pex"
+        elif self.netlist_text == "R-C Extracted":
+            netlist_source = "rcx"
         else:
-            warn(f'Unhandled netlist source {netlist_text}')
-            warn('Reverting to schematic.')
-            netlist_source = 'schematic'
+            warn(f"Unhandled netlist source {netlist_text}")
+            warn("Reverting to schematic.")
+            netlist_source = "schematic"
 
         # Update netlist source
-        self.parameter_manager.set_runtime_options(
-            'netlist_source', netlist_source
-        )
+        self.parameter_manager.set_runtime_options("netlist_source", netlist_source)
 
         # This routine just calls self.create_datasheet_view(), but the
         # button callback has an argument that needs to be handled even
@@ -999,79 +958,73 @@ class CACEGui(ttk.Frame):
 
         n = 0
         dframe.cframe = ttk.Frame(dframe)
-        dframe.cframe.grid(column=0, row=n, sticky='ewns', columnspan=10)
+        dframe.cframe.grid(column=0, row=n, sticky="ewns", columnspan=10)
 
         dframe.cframe.plabel = ttk.Label(
-            dframe.cframe, text='Project IP name:', style='italic.TLabel'
+            dframe.cframe, text="Project IP name:", style="italic.TLabel"
         )
-        dframe.cframe.plabel.grid(column=0, row=n, sticky='ewns', ipadx=5)
+        dframe.cframe.plabel.grid(column=0, row=n, sticky="ewns", ipadx=5)
         dframe.cframe.pname = ttk.Label(
-            dframe.cframe, text=dsheet['name'], style='normal.TLabel'
+            dframe.cframe, text=dsheet["name"], style="normal.TLabel"
         )
-        dframe.cframe.pname.grid(column=1, row=n, sticky='ewns', ipadx=5)
-        if 'foundry' in dsheet:
+        dframe.cframe.pname.grid(column=1, row=n, sticky="ewns", ipadx=5)
+        if "foundry" in dsheet:
             dframe.cframe.fname = ttk.Label(
-                dframe.cframe, text=dsheet['foundry'], style='normal.TLabel'
+                dframe.cframe, text=dsheet["foundry"], style="normal.TLabel"
             )
-            dframe.cframe.fname.grid(column=2, row=n, sticky='ewns', ipadx=5)
-        if 'PDK' in dsheet:
+            dframe.cframe.fname.grid(column=2, row=n, sticky="ewns", ipadx=5)
+        if "PDK" in dsheet:
             dframe.cframe.fname = ttk.Label(
-                dframe.cframe, text=dsheet['PDK'], style='normal.TLabel'
+                dframe.cframe, text=dsheet["PDK"], style="normal.TLabel"
             )
-            dframe.cframe.fname.grid(column=3, row=n, sticky='ewns', ipadx=5)
-        if 'description' in dsheet:
+            dframe.cframe.fname.grid(column=3, row=n, sticky="ewns", ipadx=5)
+        if "description" in dsheet:
             dframe.cframe.pdesc = ttk.Label(
                 dframe.cframe,
-                text=dsheet['description'],
-                style='normal.TLabel',
+                text=dsheet["description"],
+                style="normal.TLabel",
             )
-            dframe.cframe.pdesc.grid(column=4, row=n, sticky='ewns', ipadx=5)
+            dframe.cframe.pdesc.grid(column=4, row=n, sticky="ewns", ipadx=5)
 
         n = 1
-        ttk.Separator(dframe, orient='horizontal').grid(
-            column=0, row=n, sticky='ewns', columnspan=10
+        ttk.Separator(dframe, orient="horizontal").grid(
+            column=0, row=n, sticky="ewns", columnspan=10
         )
 
         # Title block
         n += 1
-        dframe.desc_title = ttk.Label(
-            dframe, text='Parameter', style='title.TLabel'
-        )
-        dframe.desc_title.grid(column=0, row=n, sticky='ewns')
-        dframe.method_title = ttk.Label(
-            dframe, text='Tool', style='title.TLabel'
-        )
-        dframe.method_title.grid(column=1, row=n, sticky='ewns')
-        dframe.min_title = ttk.Label(dframe, text='Min', style='title.TLabel')
-        dframe.min_title.grid(column=2, row=n, sticky='ewns', columnspan=2)
-        dframe.typ_title = ttk.Label(dframe, text='Typ', style='title.TLabel')
-        dframe.typ_title.grid(column=4, row=n, sticky='ewns', columnspan=2)
-        dframe.max_title = ttk.Label(dframe, text='Max', style='title.TLabel')
-        dframe.max_title.grid(column=6, row=n, sticky='ewns', columnspan=2)
-        dframe.stat_title = ttk.Label(
-            dframe, text='Status', style='title.TLabel'
-        )
-        dframe.stat_title.grid(column=8, row=n, sticky='ewns')
+        dframe.desc_title = ttk.Label(dframe, text="Parameter", style="title.TLabel")
+        dframe.desc_title.grid(column=0, row=n, sticky="ewns")
+        dframe.method_title = ttk.Label(dframe, text="Tool", style="title.TLabel")
+        dframe.method_title.grid(column=1, row=n, sticky="ewns")
+        dframe.min_title = ttk.Label(dframe, text="Min", style="title.TLabel")
+        dframe.min_title.grid(column=2, row=n, sticky="ewns", columnspan=2)
+        dframe.typ_title = ttk.Label(dframe, text="Typ", style="title.TLabel")
+        dframe.typ_title.grid(column=4, row=n, sticky="ewns", columnspan=2)
+        dframe.max_title = ttk.Label(dframe, text="Max", style="title.TLabel")
+        dframe.max_title.grid(column=6, row=n, sticky="ewns", columnspan=2)
+        dframe.stat_title = ttk.Label(dframe, text="Status", style="title.TLabel")
+        dframe.stat_title.grid(column=8, row=n, sticky="ewns")
 
         # Check whether simulations are running
         if self.parameter_manager.num_parameters() > 0:
             self.allsimbutton = ttk.Button(
                 dframe,
-                text='Stop Simulations',
-                style='redtitle.TButton',
+                text="Stop Simulations",
+                style="redtitle.TButton",
                 command=self.stop_sims,
             )
         else:
             self.allsimbutton = ttk.Button(
                 dframe,
-                style='bluetitle.TButton',
-                text='Simulate All',
+                style="bluetitle.TButton",
+                text="Simulate All",
                 command=self.sim_all,
             )
 
-        self.allsimbutton.grid(column=9, row=n, sticky='ewns')
+        self.allsimbutton.grid(column=9, row=n, sticky="ewns")
 
-        ToolTip(self.allsimbutton, text='Simulate all electrical parameters')
+        ToolTip(self.allsimbutton, text="Simulate all electrical parameters")
 
         # Make all columns equally expandable
         for i in range(10):
@@ -1080,12 +1033,12 @@ class CACEGui(ttk.Frame):
         # Parse the file for electrical parameters
         n += 1
 
-        if self.origin.get() == 'Schematic Capture':
+        if self.origin.get() == "Schematic Capture":
             isschem = True
         else:
             isschem = False
 
-        for param in dsheet['parameters'].values():
+        for param in dsheet["parameters"].values():
             self.add_param_to_list(param, n, isschem)
             n += 1
 
@@ -1096,13 +1049,13 @@ class CACEGui(ttk.Frame):
         """Add a row of widgets to the datasheet viewer"""
 
         dframe = self.datasheet_viewer.dframe
-        pname = param['name']
+        pname = param["name"]
 
         # Create widgets
         self.parameter_widgets[pname] = RowWidget(
             param,
             dframe,
-            self.parameter_manager.get_runtime_options('netlist_source'),
+            self.parameter_manager.get_runtime_options("netlist_source"),
             n,
             self.parameter_manager,
         )
@@ -1122,58 +1075,58 @@ class CACEGui(ttk.Frame):
 def gui():
     """Main entry point"""
     parser = argparse.ArgumentParser(
-        prog='cace-gui',
+        prog="cace-gui",
         description="""Graphical interface for the Circuit Automatic Characterization Engine,
         an analog and mixed-signal design flow system.""",
-        epilog='Online documentation at: https://cace.readthedocs.io/',
+        epilog="Online documentation at: https://cace.readthedocs.io/",
     )
 
     # version number
     parser.add_argument(
-        '--version', action='version', version=f'%(prog)s {__version__}'
+        "--version", action="version", version=f"%(prog)s {__version__}"
     )
 
     # positional argument, optional
     parser.add_argument(
-        'datasheet',
-        nargs='?',
-        help='input specification datasheet (YAML)',
+        "datasheet",
+        nargs="?",
+        help="input specification datasheet (YAML)",
     )
 
     # total number of jobs, optional
     parser.add_argument(
-        '-j',
-        '--jobs',
+        "-j",
+        "--jobs",
         type=int,
         help="""total number of jobs running in parallel""",
     )
 
     parser.add_argument(
-        '--max-runs',
+        "--max-runs",
         type=lambda value: int(value) if int(value) > 0 else 1,
         help="""the maximum number of runs to keep in the "runs/" folder, the oldest runs will be deleted""",
     )
 
     # on/off flag, optional
     parser.add_argument(
-        '--terminal',
-        action='store_true',
-        help='write all output to the terminal, not the window',
+        "--terminal",
+        action="store_true",
+        help="write all output to the terminal, not the window",
     )
 
     # on/off flag, optional
     parser.add_argument(
-        '--debug',
-        action='store_true',
-        help='generates additional diagnostic output',
+        "--debug",
+        action="store_true",
+        help="generates additional diagnostic output",
     )
 
     parser.add_argument(
-        '-l',
-        '--log-level',
+        "-l",
+        "--log-level",
         type=str,
-        choices=['ALL', 'DEBUG', 'INFO', 'WARNING', 'ERROR'],
-        default='INFO',
+        choices=["ALL", "DEBUG", "INFO", "WARNING", "ERROR"],
+        default="INFO",
         help="""set the log level for a more fine-grained output""",
     )
 
@@ -1185,17 +1138,17 @@ def gui():
         set_log_level(args.log_level)
 
     # Create tkinter root
-    root = tkinter.Tk(className='CACE')
+    root = tkinter.Tk(className="CACE")
     app = CACEGui(root, args.max_runs, args.jobs)
 
     # Enable debug output
     if args.debug:
-        dbg('Enabling debug output.')
+        dbg("Enabling debug output.")
         app.settings.set_debug(True)
 
     # Load the datasheet
     if args.datasheet:
-        dbg(f'Setting datasheet to {args.datasheet}')
+        dbg(f"Setting datasheet to {args.datasheet}")
         if app.set_datasheet(args.datasheet):
             sys.exit(0)
     else:
@@ -1215,5 +1168,5 @@ def gui():
     root.destroy()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     gui()

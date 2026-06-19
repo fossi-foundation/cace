@@ -5,6 +5,7 @@
 consoletext --- extends tkinter class Text
 with stdout and stderr redirection.
 """
+
 # --------------------------------------------------------
 # Written by Tim Edwards
 # efabless, inc.
@@ -48,18 +49,18 @@ class ConsoleText(tkinter.Text):
 
         tkinter.Text.__init__(self, master, cnf, **kw)
 
-        self.tag_configure('stdout', background='white', foreground='black')
-        self.tag_configure('stderr', background='white', foreground='red')
+        self.tag_configure("stdout", background="white", foreground="black")
+        self.tag_configure("stderr", background="white", foreground="red")
         # None of these works!  Cannot change selected text background!
-        self.config(selectbackground='blue', selectforeground='white')
-        self.tag_configure('sel', background='blue', foreground='white')
+        self.config(selectbackground="blue", selectforeground="white")
+        self.tag_configure("sel", background="blue", foreground="white")
 
     def write(self, val, is_stderr=False):
-        lines = int(self.index('end-1c').split('.')[0])
+        lines = int(self.index("end-1c").split(".")[0])
         if lines > self.linelimit:
-            self.delete('1.0', str(lines - self.linelimit) + '.0')
-        self.insert('end', val, 'stderr' if is_stderr else 'stdout')
-        self.see('end')
+            self.delete("1.0", str(lines - self.linelimit) + ".0")
+        self.insert("end", val, "stderr" if is_stderr else "stdout")
+        self.see("end")
 
     def limit(self, val):
         self.linelimit = val

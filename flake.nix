@@ -1,23 +1,12 @@
+# SPDX-License-Identifier: MIT
 # Copyright 2025 CACE Contributors
-# Copyright 2024 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright (c) 2023-2025 UmbraLogic Technologies LLC
 {
   description = "open-source framework for automatic circuit characterization";
 
   inputs = {
-    nix-eda.url = "github:fossi-foundation/nix-eda/6.0.1";
-    ciel.url = "github:fossi-foundation/ciel";
+    nix-eda.url = "github:fossi-foundation/nix-eda/6.24.0";
+    ciel.url = "github:fossi-foundation/ciel/2.5.0";
     devshell.url = "github:numtide/devshell";
     flake-compat.url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
   };
@@ -54,11 +43,13 @@
           (nix-eda.composePythonOverlay (
             pkgs': pkgs: pypkgs': pypkgs:
             let
-              callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
+              callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
             in
             {
               mpld3 = callPythonPackage ./nix/mpld3.nix { };
-              cace = callPythonPackage ./default.nix { };
+              cace = callPythonPackage ./default.nix {
+                flake = self;
+              };
             }
           ))
           (
@@ -66,7 +57,9 @@
             let
               callPackage = lib.callPackageWith pkgs';
             in
-            { }
+            {
+              cace-shell = callPackage ./nix/create-shell.nix { };
+            }
             // lib.optionalAttrs pkgs.stdenv.isLinux {
               cace-docker = callPackage ./nix/docker.nix {
                 createDockerImage = nix-eda.createDockerImage;
@@ -76,9 +69,6 @@
           )
         ];
       };
-
-      # Helper functions
-      createCaceShell = import ./nix/create-shell.nix;
 
       # Packages
       legacyPackages = nix-eda.forAllSystems (
@@ -96,7 +86,7 @@
       packages = nix-eda.forAllSystems (
         system:
         let
-          pkgs = (self.legacyPackages."${system}");
+          pkgs = self.legacyPackages."${system}";
         in
         {
           inherit (pkgs) colab-env;
@@ -108,8 +98,7 @@
         }
       );
 
-      # devshells
-
+      # Development Shells
       devShells = nix-eda.forAllSystems (
         system:
         let
@@ -119,37 +108,37 @@
         {
           # These devShells are rather unorthodox for Nix devShells in that they
           # include the package itself. For a proper devShell, try .#dev.
-          default = callPackage (self.createCaceShell {
-          }) { };
-          notebook = callPackage (self.createCaceShell {
-            extra-python-packages = with pkgs.python3.pkgs; [
+          default = pkgs.cace-shell;
+          notebook = pkgs.cace-shell.override ({
+            extra-packages = with pkgs; [
               jupyter
-              pandas
             ];
-          }) { };
+            extra-python-packages =
+              ps: with ps; [
+                pandas
+              ];
+          });
           # Normal devShells
-          dev = callPackage (self.createCaceShell {
-            extra-packages = with pkgs; [
-            ];
-            extra-python-packages = with pkgs.python3.pkgs; [
-              setuptools
-              build
-              twine
-              black # blue
-            ];
+          dev = pkgs.cace-shell.override ({
+            extra-python-packages =
+              ps: with ps; [
+                setuptools
+                build
+                twine
+                black
+              ];
             include-cace = false;
-          }) { };
-          docs = callPackage (self.createCaceShell {
-            extra-packages = with pkgs; [
-            ];
-            extra-python-packages = with pkgs.python3.pkgs; [
-              sphinx
-              myst-parser
-              furo
-              sphinx-autobuild
-            ];
+          });
+          docs = pkgs.cace-shell.override ({
+            extra-python-packages = 
+              ps: with ps; [
+                sphinx
+                myst-parser
+                furo
+                sphinx-autobuild
+              ];
             include-cace = false;
-          }) { };
+          });
         }
       );
     };

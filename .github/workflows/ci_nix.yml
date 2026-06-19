@@ -12,11 +12,11 @@ on:
 jobs:
   prepare-pdks:
     name: Cache PDKs
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       opdks_rev: ${{ steps.set-rev.outputs.opdks_rev }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       - name: Python Dependencies
         run: |
           python3 -m pip install -r ./requirements.txt
@@ -25,7 +25,7 @@ jobs:
         run: |
           echo "opdks_rev=$(cat ./cace/open_pdks_rev)" >> $GITHUB_OUTPUT
       - name: Cache sky130 PDK
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/.ciel-sky130
           key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
@@ -34,7 +34,7 @@ jobs:
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           ciel enable --pdk-family sky130 --pdk-root ${{ github.workspace }}/.ciel-sky130 ${{ steps.set-rev.outputs.opdks_rev }}
       - name: Cache gf180mcu PDK
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/.ciel-gf180mcu
           key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.opdks_rev }}
@@ -43,42 +43,42 @@ jobs:
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           ciel enable --pdk-family gf180mcu --pdk-root ${{ github.workspace }}/.ciel-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
       - name: Checkout submodules
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           submodules: true
   lint:
     name: Lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Set Up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.8"
+          python-version: "3.10"
       - name: Install Dependencies
         run: make dependencies
       - name: Lint
         run: |
           make lint
   build-py:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [lint, prepare-pdks]
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
       fail-fast: false
     name: Build and Unit Test (Python ${{ matrix.python-version }})
     steps:
       - name: Check out repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Set Up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       - name: Cache sky130 PDK
         id: cache-sky130-pdk
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/.ciel-sky130
           key: cache-sky130-pdk-${{ needs.prepare-pdks.outputs.opdks_rev }}
@@ -92,19 +92,18 @@ jobs:
         run: echo TODO
   build-linux-x86_64:
     needs: lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Build (Nix/x86_64-linux)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up GITHUB_TOKEN
         run: |
-          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - uses: DeterminateSystems/nix-installer-action@main
+          echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+      - uses: ./.github/actions/setup_nix
         with:
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }}
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -112,19 +111,18 @@ jobs:
           run_tests: "true"
   build-linux-aarch64:
     needs: lint
-    runs-on: ubuntu-22.04-arm
+    runs-on: ubuntu-24.04-arm
     name: Build (Nix/aarch64-linux)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up GITHUB_TOKEN
         run: |
-          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - uses: DeterminateSystems/nix-installer-action@main
+          echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+      - uses: ./.github/actions/setup_nix
         with:
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }}
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -138,7 +136,7 @@ jobs:
             {
               name: "macOS 15 (Intel)",
               family: "darwin",
-              runner: "macos-15-intel",
+              runner: "macos-15",
               arch: "x86_64",
               nix: "x86_64-darwin",
             },
@@ -155,16 +153,15 @@ jobs:
     runs-on: ${{ matrix.os.runner }}
     name: Build (Nix/${{ matrix.os.nix }})
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up GITHUB_TOKEN
         run: |
-          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-      - uses: DeterminateSystems/nix-installer-action@main
+          echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+      - uses: ./.github/actions/setup_nix
         with:
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }}
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -172,7 +169,7 @@ jobs:
           shell: "zsh {0}"
           run_tests: "true"
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [build-linux-x86_64, prepare-pdks]
     name: Test Design ${{ matrix.test_name }} (${{ matrix.pdk }})
     strategy:
@@ -183,27 +180,28 @@ jobs:
         pdk_family: ["sky130"]
     steps:
       - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+        uses: AdityaGarg8/remove-unwanted-software@v5
         with:
           remove-dotnet: "true"
           remove-android: "true"
           remove-haskell: "true"
           remove-codeql: "true"
           remove-docker-images: "true"
-          root-reserve-mb: 20480
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
       - name: Check if Git
         run: |
           git status || true
           tree .git || true
-      - uses: DeterminateSystems/nix-installer-action@main
+      - name: Set up GITHUB_TOKEN
+        run: |
+          echo "GITHUB_TOKEN=${{ secrets.BOT_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+      - uses: ./.github/actions/setup_nix
         with:
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }}
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - name: Build with Nix
         uses: ./.github/actions/build_nix
         with:
@@ -214,7 +212,7 @@ jobs:
           sudo tree /nix/store/*-openlane2 || true
       - name: Cache PDK
         id: cache-pdk
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./.ciel-${{ matrix.pdk_family }}
           key: cache-${{ matrix.pdk_family }}-pdk-${{ needs.prepare-pdks.outputs.opdks_rev }}

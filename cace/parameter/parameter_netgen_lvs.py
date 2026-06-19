@@ -17,14 +17,20 @@ import re
 import sys
 import math
 import json
+from typing import (
+    Optional,
+    List,
+    Any,
+)
 
+from ..config import Variable, Result
+from ..common.types import Path
 from ..common.common import (
     run_subprocess,
     get_netgen_setupfile,
 )
-
-from .parameter import Parameter, ResultType, Argument, Result
-
+from .parameter import Parameter, ResultType, NamedResult
+from .registry import register_parameter
 from ..logging import (
     dbg,
     verbose,
@@ -36,14 +42,40 @@ from ..logging import (
     err,
 )
 
-from .parameter_manager import register_parameter
 
-
-@register_parameter('netgen_lvs')
+@register_parameter("netgen_lvs")
 class ParameterNetgenLVS(Parameter):
     """
-    Run LVS using netgen
+    Run LVS using netgen.
+
+    ```{note}
+    The `netgen_lvs` tool always compares the `schematic` netlist with the `layout` extracted netlist, independent of the selected netlist source.
+    ```
     """
+
+    id = "Netgen.LVS"
+    name = "Layout Versus Schematic (Netgen)"
+
+    config_vars = [
+        Variable(
+            "args",
+            Optional[List[str]],
+            "Additional arguments.",
+        ),
+        Variable(
+            "script",
+            Optional[Path],
+            "Custom netgen LVS script located relative to `scripts/`.",
+        ),
+    ]
+
+    config_results = [
+        Result(
+            "lvs_errors",
+            Any,
+            "The number of LVS errors.",
+        ),
+    ]
 
     def __init__(
         self,
@@ -55,16 +87,11 @@ class ParameterNetgenLVS(Parameter):
             **kwargs,
         )
 
-        self.add_result(Result('lvs_errors'))
-
-        self.add_argument(Argument('args', [], False))
-        self.add_argument(Argument('script', None, False))
-
     def is_runnable(self):
-        netlist_source = self.runtime_options['netlist_source']
+        netlist_source = self.runtime_options["netlist_source"]
 
-        if netlist_source == 'schematic':
-            info('Netlist source is schematic capture. Not running LVS.')
+        if netlist_source == "schematic":
+            info("Netlist source is schematic capture. Not running LVS.")
             self.result_type = ResultType.SKIPPED
             return False
 
@@ -77,11 +104,11 @@ class ParameterNetgenLVS(Parameter):
         # Acquire a job from the global jobs semaphore
         with self.jobs_sem:
 
-            info('Running netgen to get LVS report.')
+            info("Running netgen to get LVS report.")
 
-            projname = self.datasheet['name']
-            paths = self.datasheet['paths']
-            root_path = self.paths['root']
+            projname = self.datasheet["name"]
+            paths = self.datasheet["paths"]
+            root_path = self.paths["root"]
 
             # Make sure that both netlists exist, or flag a warning.
 
@@ -89,56 +116,48 @@ class ParameterNetgenLVS(Parameter):
             layout_netlist = None
             verilog_netlist = None
 
-            if 'netlist' in paths:
-                layout_netlist_path = os.path.join(paths['netlist'], 'layout')
-                layout_netlist = os.path.join(
-                    layout_netlist_path, projname + '.spice'
-                )
+            if "netlist" in paths:
+                layout_netlist_path = os.path.join(paths["netlist"], "layout")
+                layout_netlist = os.path.join(layout_netlist_path, projname + ".spice")
                 layout_netlist = os.path.abspath(layout_netlist)
 
-                schem_netlist_path = os.path.join(
-                    paths['netlist'], 'schematic'
-                )
-                schem_netlist = os.path.join(
-                    schem_netlist_path, projname + '.spice'
-                )
+                schem_netlist_path = os.path.join(paths["netlist"], "schematic")
+                schem_netlist = os.path.join(schem_netlist_path, projname + ".spice")
                 schem_netlist = os.path.abspath(schem_netlist)
 
-            if 'verilog' in paths:
-                verilog_path = paths['verilog']
-                verilog_netlist = os.path.join(verilog_path, projname + '.v')
+            if "verilog" in paths:
+                verilog_path = paths["verilog"]
+                verilog_netlist = os.path.join(verilog_path, projname + ".v")
                 verilog_netlist = os.path.abspath(verilog_netlist)
 
-            scriptspath = paths.get('scripts')
+            scriptspath = paths.get("scripts")
 
             if not layout_netlist or not os.path.isfile(layout_netlist):
-                err('Layout-extracted netlist does not exist. Cannot run LVS')
+                err("Layout-extracted netlist does not exist. Cannot run LVS")
                 self.result_type = ResultType.ERROR
                 return
 
             if not schem_netlist or not os.path.isfile(schem_netlist):
                 if not verilog_netlist or not os.path.isfile(verilog_netlist):
-                    err(
-                        'Schematic-captured netlist does not exist. Cannot run LVS'
-                    )
+                    err("Schematic-captured netlist does not exist. Cannot run LVS")
                     self.result_type = ResultType.ERROR
                     return
                 else:
-                    schem_arg = verilog_netlist + ' ' + projname
+                    schem_arg = verilog_netlist + " " + projname
             else:
-                schem_arg = schem_netlist + ' ' + projname
+                schem_arg = schem_netlist + " " + projname
 
             # Check the netlist to see if the cell to match is a subcircuit.  If
             # not, then assume it is the top level.
 
             is_subckt = False
             subrex = re.compile(
-                r'^[^\*]*[ \t]*.subckt[ \t]+([^ \t]+).*$', re.IGNORECASE
+                r"^[^\*]*[ \t]*.subckt[ \t]+([^ \t]+).*$", re.IGNORECASE
             )
             with open(layout_netlist) as ifile:
                 spitext = ifile.read()
 
-            dutlines = spitext.replace('\n+', ' ').splitlines()
+            dutlines = spitext.replace("\n+", " ").splitlines()
             for line in dutlines:
                 lmatch = subrex.match(line)
                 if lmatch:
@@ -148,7 +167,7 @@ class ParameterNetgenLVS(Parameter):
                         break
 
             if is_subckt:
-                layout_arg = layout_netlist + ' ' + projname
+                layout_arg = layout_netlist + " " + projname
             else:
                 layout_arg = layout_netlist
 
@@ -157,44 +176,41 @@ class ParameterNetgenLVS(Parameter):
             # Run LVS as a subprocess and wait for it to finish.  Use the -json
             # switch to get a file that is easy to parse.
 
-            outfilename = projname + '_comp.out'
+            outfilename = projname + "_comp.out"
             outfilepath = os.path.join(self.param_dir, outfilename)
-            jsonfilename = projname + '_comp.json'
+            jsonfilename = projname + "_comp.json"
             jsonfilepath = os.path.join(self.param_dir, jsonfilename)
 
-            if self.get_argument('script'):
-                lvsargs = ['-batch', 'source']
+            if self.config["script"]:
+                lvsargs = ["-batch", "source"]
 
                 # Use the custom script
                 lvsargs.append(
-                    os.path.abspath(
-                        os.path.join(scriptspath, self.get_argument('script'))
-                    )
+                    os.path.abspath(os.path.join(scriptspath, self.config["script"]))
                 )
 
             else:
-                lvsargs = ['-batch', 'lvs']
+                lvsargs = ["-batch", "lvs"]
                 lvsargs.append(layout_arg)
                 lvsargs.append(schem_arg)
                 lvsargs.append(lvs_setup)
                 lvsargs.append(outfilepath)
-                lvsargs.append('-json')
+                lvsargs.append("-json")
 
-            lvsargs.extend(self.get_argument('args'))
+            if self.config["args"]:
+                lvsargs.extend(self.config["args"])
 
-            returncode = self.run_subprocess(
-                'netgen', lvsargs, cwd=self.param_dir
-            )
+            returncode = self.run_subprocess("netgen", lvsargs, cwd=self.param_dir)
 
             if not os.path.isfile(jsonfilepath):
-                err('No output JSON file generated by netgen!')
-                err(f'Expected file: {jsonfilepath}')
+                err("No output JSON file generated by netgen!")
+                err(f"Expected file: {jsonfilepath}")
                 self.result_type = ResultType.ERROR
                 return
 
             if not os.path.isfile(outfilepath):
-                err('No output text file generated by netgen!')
-                err(f'Expected file: {outfilepath}')
+                err("No output text file generated by netgen!")
+                err(f"Expected file: {outfilepath}")
                 self.result_type = ResultType.ERROR
                 return
 
@@ -205,7 +221,7 @@ class ParameterNetgenLVS(Parameter):
         if self.step_cb:
             self.step_cb(self.param)
 
-        with open(jsonfilepath, 'r') as cfile:
+        with open(jsonfilepath, "r") as cfile:
             lvsdata = json.load(cfile)
 
         # Count errors in the JSON file
@@ -223,12 +239,10 @@ class ParameterNetgenLVS(Parameter):
             # flattened netlist.
 
             if topcell:
-                if 'devices' in cellrec:
-                    devices = cellrec['devices']
+                if "devices" in cellrec:
+                    devices = cellrec["devices"]
                     devlist = [
-                        val
-                        for pair in zip(devices[0], devices[1])
-                        for val in pair
+                        val for pair in zip(devices[0], devices[1]) for val in pair
                     ]
                     devpair = list(
                         devlist[p : p + 2] for p in range(0, len(devlist), 2)
@@ -239,24 +253,22 @@ class ParameterNetgenLVS(Parameter):
                         diffdevs = abs(c1dev[1] - c2dev[1])
                         failures += diffdevs
 
-                if 'nets' in cellrec:
-                    nets = cellrec['nets']
+                if "nets" in cellrec:
+                    nets = cellrec["nets"]
                     diffnets = abs(nets[0] - nets[1])
                     failures += diffnets
 
-                if 'badnets' in cellrec:
-                    badnets = cellrec['badnets']
+                if "badnets" in cellrec:
+                    badnets = cellrec["badnets"]
                     failures += len(badnets)
 
-                if 'badelements' in cellrec:
-                    badelements = cellrec['badelements']
+                if "badelements" in cellrec:
+                    badelements = cellrec["badelements"]
                     failures += len(badelements)
 
-                if 'pins' in cellrec:
-                    pins = cellrec['pins']
-                    pinlist = [
-                        val for pair in zip(pins[0], pins[1]) for val in pair
-                    ]
+                if "pins" in cellrec:
+                    pins = cellrec["pins"]
+                    pinlist = [val for pair in zip(pins[0], pins[1]) for val in pair]
                     pinpair = list(
                         pinlist[p : p + 2] for p in range(0, len(pinlist), 2)
                     )
@@ -265,25 +277,21 @@ class ParameterNetgenLVS(Parameter):
                             failures += 1
 
             # Property errors must be counted for every cell
-            if 'properties' in cellrec:
-                properties = cellrec['properties']
+            if "properties" in cellrec:
+                properties = cellrec["properties"]
                 failures += len(properties)
 
             if isinstance(failures, list):
-                err(
-                    f'Unknown result from LVS or device check analysis: {failures}'
-                )
+                err(f"Unknown result from LVS or device check analysis: {failures}")
                 self.result_type = ResultType.ERROR
                 return
-            elif isinstance(failures, str) and failures != 'failure':
+            elif isinstance(failures, str) and failures != "failure":
                 try:
                     failures = int(failures)
                 except:
-                    err(
-                        f'Unknown result from LVS or device check analysis: {failures}'
-                    )
+                    err(f"Unknown result from LVS or device check analysis: {failures}")
                     self.result_type = ResultType.ERROR
                     return
 
         self.result_type = ResultType.SUCCESS
-        self.get_result('lvs_errors').values = [failures]
+        self.get_result("lvs_errors").values = [failures]

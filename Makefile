@@ -10,11 +10,11 @@ test:
 
 .PHONY: lint
 lint:
-	blue --check .
+	black --check .
 
 .PHONY: format
 format:
-	blue .
+	black .
 
 .PHONY: build
 build:
