@@ -1,3 +1,4 @@
+# Copyright 2026 CACE Contributors
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +27,32 @@ from typing import (
     SupportsFloat,
     Union,
 )
+
+
+def get_cace_root() -> str:
+    """
+    Returns the root CACE folder, i.e., the folder containing the
+    ``__init__.py``.
+    """
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def get_pdk_hash(pdk_variant) -> str:
+    """
+    Gets the PDK version hash confirmed compatible with this version of CACE.
+    """
+
+    with open(os.path.join(get_cace_root(), "pdk_hashes.yaml"), "r") as file:
+        pdk_hashes = yaml.safe_load(file)
+        for pdk_family in pdk_hashes:
+            if pdk_family in pdk_variant:
+                return pdk_hashes[pdk_family]
+
+    err(
+        f"Could not find a PDK family for '{pdk_variant}'. Please specify a PDK manually with '--manual-pdk'."
+    )
+    exit(1)
+
 
 # The following code snippet has been adapted under the following license:
 #
