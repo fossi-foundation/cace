@@ -9,6 +9,20 @@ on:
   # Manual Dispatch
   workflow_dispatch:
 
+concurrency:
+  # Behavior:
+  # - Group all pull requests: latest push cancels previous ones
+  # - Group all branches:
+  #   - If main/version- branches: run serially
+  #   - Else, latest push cancels previous ones
+  group: >
+    ${{
+      (github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number)) ||
+      (github.event_name == 'push' && format('branch-{0}', github.ref_name)) ||
+      ''
+    }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || !(startsWith(github.ref_name, 'version-') || github.ref_name == 'main' || github.ref_name == 'dev') }}
+
 jobs:
   prepare-pdks:
     name: Cache PDKs
