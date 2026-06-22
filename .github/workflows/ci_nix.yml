@@ -28,7 +28,9 @@ jobs:
     name: Cache PDKs
     runs-on: ubuntu-24.04
     outputs:
-      opdks_rev: ${{ steps.set-rev.outputs.opdks_rev }}
+      sky130_hash: ${{ steps.set-rev.outputs.sky130_hash }}
+      gf180mcu_hash: ${{ steps.set-rev.outputs.gf180mcu_hash }}
+      ihp-sg13g2_hash: ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
     steps:
       - uses: actions/checkout@v6
       - name: Python Dependencies
@@ -37,25 +39,37 @@ jobs:
       - name: Get Open PDKs Revision
         id: set-rev
         run: |
-          echo "opdks_rev=$(cat ./cace/open_pdks_rev)" >> $GITHUB_OUTPUT
+          echo "sky130_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./cace/pdk_hashes.yaml --pdk-family sky130)" >> $GITHUB_OUTPUT
+          echo "gf180mcu_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./cace/pdk_hashes.yaml --pdk-family gf180mcu)" >> $GITHUB_OUTPUT
+          echo "ihp-sg13g2_hash=$(python3 ./.github/scripts/get_pdk_hash.py ./cace/pdk_hashes.yaml --pdk-family ihp-sg13g2)" >> $GITHUB_OUTPUT
       - name: Cache sky130 PDK
         uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/.ciel-sky130
-          key: cache-sky130-pdk-${{ steps.set-rev.outputs.opdks_rev }}
+          key: cache-sky130-pdk-${{ steps.set-rev.outputs.sky130_hash }}
       - name: Enable sky130 PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          ciel enable --pdk-family sky130 --pdk-root ${{ github.workspace }}/.ciel-sky130 ${{ steps.set-rev.outputs.opdks_rev }}
+          ciel enable --pdk-family sky130 --pdk-root ${{ github.workspace }}/.ciel-sky130 ${{ steps.set-rev.outputs.sky130_hash }}
       - name: Cache gf180mcu PDK
         uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/.ciel-gf180mcu
-          key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.opdks_rev }}
+          key: cache-gf180mcu-pdk-${{ steps.set-rev.outputs.gf180mcu_hash }}
       - name: Enable gf180mcu PDK
         run: |
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          ciel enable --pdk-family gf180mcu --pdk-root ${{ github.workspace }}/.ciel-gf180mcu ${{ steps.set-rev.outputs.opdks_rev }}
+          ciel enable --pdk-family gf180mcu --pdk-root ${{ github.workspace }}/.ciel-gf180mcu ${{ steps.set-rev.outputs.gf180mcu_hash }}
+      - name: Cache ihp-sg13g2 PDK
+        uses: actions/cache@v5
+        with:
+          path: ./.ciel-ihp-sg13g2
+          key: cache-ihp-sg13g2-pdk-${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
+          enableCrossOsArchive: true
+      - name: Enable ihp-sg13g2 PDK
+        run: |
+          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          ciel enable --pdk ihp-sg13g2 --pdk-root ./.ciel-ihp-sg13g2 ${{ steps.set-rev.outputs.ihp-sg13g2_hash }}
       - name: Checkout submodules
         uses: actions/checkout@v6
         with:
@@ -95,13 +109,13 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/.ciel-sky130
-          key: cache-sky130-pdk-${{ needs.prepare-pdks.outputs.opdks_rev }}
+          key: cache-sky130-pdk-${{ needs.prepare-pdks.outputs.sky130_hash }}
       - name: Enable sky130 PDK
         if: steps.cache-sky130-pdk.outputs.cache-hit != 'true'
         run: |
           pip3 install -r ./requirements.txt
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          ciel enable --pdk-family sky130 --pdk-root ${{ github.workspace }}/.ciel-sky130 ${{ needs.prepare-pdks.outputs.opdks_rev }}
+          ciel enable --pdk-family sky130 --pdk-root ${{ github.workspace }}/.ciel-sky130 ${{ needs.prepare-pdks.outputs.sky130_hash }}
       - name: Run Unit Tests
         run: echo TODO
   build-linux-x86_64:
@@ -190,8 +204,14 @@ jobs:
       fail-fast: false
       matrix:
         test_name: ["test"]
-        pdk: ["sky130A"]
-        pdk_family: ["sky130"]
+        pdk: ["sky130A", "gf180mcuD", "ihp-sg13g2"]
+        include:
+          - pdk_family: sky130
+            pdk: sky130A
+          - pdk_family: gf180mcu
+            pdk: gf180mcuD
+          - pdk_family: ihp-sg13g2
+            pdk: ihp-sg13g2
     steps:
       - name: Maximize build space
         uses: AdityaGarg8/remove-unwanted-software@v5
@@ -224,12 +244,15 @@ jobs:
         run: |
           sudo du -hs /nix/store/* | sort -h | tail -n 10
           sudo tree /nix/store/*-openlane2 || true
+      - name: Get PDK hash
+        run: |
+          echo "PDK_HASH=$(python3 ./.github/scripts/get_pdk_hash.py ./cace/pdk_hashes.yaml --pdk-family ${{ matrix.pdk_family }})" >> $GITHUB_ENV
       - name: Cache PDK
         id: cache-pdk
         uses: actions/cache@v5
         with:
           path: ./.ciel-${{ matrix.pdk_family }}
-          key: cache-${{ matrix.pdk_family }}-pdk-${{ needs.prepare-pdks.outputs.opdks_rev }}
+          key: cache-${{ matrix.pdk_family }}-pdk-${{ env.PDK_HASH }}
           enableCrossOsArchive: true
       - name: Enable PDKs
         if: steps.cache-pdk.outputs.cache-hit != 'true'
@@ -238,4 +261,4 @@ jobs:
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
           ciel enable --pdk-family ${{ matrix.pdk_family }} \
             --pdk-root ./.ciel-${{ matrix.pdk_family }} \
-            ${{ needs.prepare-pdks.outputs.opdks_rev }}
+            ${{ env.PDK_HASH }}
