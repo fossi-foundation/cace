@@ -16,7 +16,7 @@ jobs:
   build-and-upload:
     # Only run this job if the owner is FOSSi Foundation
     if: github.repository_owner == 'fossi-foundation'
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Build Package 📦 and Upload to PyPI 🐍
     steps:
       - name: Check out repo
