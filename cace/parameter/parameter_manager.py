@@ -32,6 +32,7 @@ from ..common.cace_write import (
     generate_documentation,
 )
 from ..common.cace_regenerate import regenerate_netlists, regenerate_gds
+from ..common.common import get_pdk_root
 
 from ..logging import (
     dbg,
@@ -487,10 +488,6 @@ class ParameterManager:
 
             if cls := find_tool(toolname):
 
-                print("-----------")
-                print(toolname)
-                print(variables)
-
                 processed_variables = {}
 
                 for config_var in cls.config_vars:
@@ -503,11 +500,6 @@ class ParameterManager:
 
                     key_path = f"{pname}.{cls.id}.{config_var.name}"
 
-                    print(key_path)
-                    print(value)
-                    print(config_var.default)
-                    print(config_var.type)
-
                     # Validate the types
                     val = config_var._Variable__process(
                         key_path=key_path,
@@ -518,8 +510,6 @@ class ParameterManager:
                     )
 
                     processed_variables[config_var.name] = val
-
-                print(processed_variables)
 
                 new_sim_param = cls(
                     pname,
@@ -644,6 +634,8 @@ class ParameterManager:
             for run in remove:
                 shutil.rmtree(run)
 
+        info(f"PDK root is '{get_pdk_root()}'.")
+
     def run_parameters_async(self):
         """Start a worker thread to start parameter threads"""
 
@@ -656,13 +648,13 @@ class ParameterManager:
         if not fullnetlistpath:
             err("Failed to regenerate project netlist, aborting.")
             self.cancel_parameters(True)
-            return
+            return 1
 
         # If mag files are given as layout, regenerate the gds if needed
         if regenerate_gds(self.datasheet, self.runtime_options):
             err("Failed to regenerate GDSII layout from magic layout, aborting.")
             self.cancel_parameters(True)
-            return
+            return 1
 
         # Only start a new worker thread, if
         # the previous one hasn't completed yet
@@ -670,6 +662,8 @@ class ParameterManager:
             # Start new worker thread to start parameter threads
             self.worker_thread = threading.Thread(target=self.run_parameters_thread)
             self.worker_thread.start()
+
+        return 0
 
     def run_parameters_thread(self):
         """Called as a thread, starts the threads of queued parameters"""

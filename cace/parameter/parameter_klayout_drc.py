@@ -141,7 +141,7 @@ class ParameterKLayoutDRC(Parameter):
                     "drc",
                     f'{self.datasheet["PDK"]}_mr.drc',
                 )
-            if self.datasheet["PDK"].startswith("ihp-sg13g2"):
+            if self.datasheet["PDK"].startswith("ihp-sg13"):
                 drc_script_path = os.path.join(
                     get_pdk_root(),
                     self.datasheet["PDK"],
@@ -149,7 +149,7 @@ class ParameterKLayoutDRC(Parameter):
                     "klayout",
                     "tech",
                     "drc",
-                    "run_drc.py",
+                    f'{self.datasheet["PDK"]}.drc',
                 )
 
         if not os.path.exists(drc_script_path):
@@ -158,7 +158,7 @@ class ParameterKLayoutDRC(Parameter):
             self.jobs_sem.release(jobs)
             return
 
-        report_file_path = os.path.join(self.param_dir, "report.xml")
+        report_file_path = os.path.join(self.param_dir, "drc_report.lyrdb")
 
         arguments = []
 
@@ -178,41 +178,29 @@ class ParameterKLayoutDRC(Parameter):
                 f"thr={jobs}",
             ]
 
-        if self.datasheet["PDK"].startswith("ihp-sg13g2"):
+        if self.datasheet["PDK"].startswith("ihp-sg13"):
             arguments = [
+                "-b",
+                "-r",
                 drc_script_path,
-                f"--topcell={projname}",
-                f"--path={os.path.abspath(layout_filepath)}",
-                f"--run_dir={self.param_dir}",
-                f"--mp={jobs}",
+                "-rd",
+                f"input={os.path.abspath(layout_filepath)}",
+                "-rd",
+                f"topcell={projname}",
+                "-rd",
+                f"report={report_file_path}",
+                "-rd",
+                f"threads={jobs}",
             ]
 
-            if self.config["args"]:
-                arguments.extend(self.config["args"])
+        if self.config["args"]:
+            arguments.extend(self.config["args"])
 
-            # IHP has a python wrapper for running the DRC
-            returncode = self.run_subprocess(
-                "python3",
-                arguments,
-                cwd=self.param_dir,
-            )
-
-            # The report is placed in a .lyrdb file
-            #  - The name of this file depends on which rulesets were checked...
-            #  - Only one report should remain after merging by run_drc.py
-            report_files = glob.glob(f"{self.param_dir}/*.lyrdb")
-            if len(report_files) > 0:
-                report_file_path = report_files[0]
-
-        else:
-            if self.config["args"]:
-                arguments.extend(self.config["args"])
-
-            returncode = self.run_subprocess(
-                "klayout",
-                arguments,
-                cwd=self.param_dir,
-            )
+        returncode = self.run_subprocess(
+            "klayout",
+            arguments,
+            cwd=self.param_dir,
+        )
 
         # Free job(s) from the global jobs semaphore
         self.jobs_sem.release(jobs)

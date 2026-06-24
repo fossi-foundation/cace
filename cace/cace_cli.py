@@ -352,7 +352,9 @@ def cli():
     )
 
     # Run the simulations
-    parameter_manager.run_parameters_async()
+    if parameter_manager.run_parameters_async():
+        err(f"CACE failed to dispatch parameters.")
+        sys.exit(1)
 
     # Wait for completion
     parameter_manager.join_parameters()
