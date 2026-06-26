@@ -627,10 +627,6 @@ def validate_datasheet(datasheet):
             # Find tool via old name or new ID
             if cls := find_tool(toolname):
 
-                print("-----------")
-                print(toolname)
-                print(variables)
-
                 for config_var in cls.config_vars:
                     if config_var.name in variables:
                         value = variables[config_var.name]
@@ -640,11 +636,6 @@ def validate_datasheet(datasheet):
                         value = None
 
                     key_path = f"{param_name}.{cls.id}.{config_var.name}"
-
-                    print(key_path)
-                    print(value)
-                    print(config_var.default)
-                    print(config_var.type)
 
                     # Validate the types
                     config_var._Variable__process(

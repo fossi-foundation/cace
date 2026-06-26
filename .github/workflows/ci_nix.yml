@@ -262,3 +262,41 @@ jobs:
           ciel enable --pdk-family ${{ matrix.pdk_family }} \
             --pdk-root ./.ciel-${{ matrix.pdk_family }} \
             ${{ env.PDK_HASH }}
+      - name: Compile Verilog-A (ihp-sg13g2)
+        if: matrix.pdk_family == 'ihp-sg13g2'
+        run: |
+          wget https://fides.fe.uni-lj.si/openvaf/download/openvaf-reloaded-20260616-linux_x64.tar.gz
+          sudo tar -xvzf openvaf-reloaded-20260616-linux_x64.tar.gz -C /usr/bin/
+          cd ./.ciel-${{ matrix.pdk_family }}/${{ matrix.pdk }}/libs.tech/verilog-a; source openvaf-compile-va.sh
+      - name: Run Example (sky130)
+        if: matrix.pdk_family == 'sky130'
+        run: |
+          PDK_ROOT=$(realpath ./.ciel-${{ matrix.pdk_family }}) PDK=${{ matrix.pdk }} nix develop --command bash -c "cd examples/sky130_cace_ip__ota5t/; cace"
+      - name: Run Example (ihp-sg13g2)
+        if: matrix.pdk_family == 'ihp-sg13g2'
+        run: |
+          PDK_ROOT=$(realpath ./.ciel-${{ matrix.pdk_family }}) PDK=${{ matrix.pdk }} nix develop --command bash -c "cd examples/sg13g2_cace_ip__ota5t/; cace"
+      # Upload artifacts
+      - name: Upload Artifacts
+        if: matrix.pdk_family == 'sky130'
+        uses: actions/upload-artifact@v4
+        with:
+          name: runs_sky130
+          path: |
+            examples/sky130_cace_ip__ota5t/runs/
+      # Add summary
+      - name: Add Markdown to Step Summary
+        if: matrix.pdk_family == 'sky130'
+        run: cat examples/sky130_cace_ip__ota5t/runs/*/summary.md >> $GITHUB_STEP_SUMMARY
+      # Upload artifacts
+      - name: Upload Artifacts
+        if: matrix.pdk_family == 'ihp-sg13g2'
+        uses: actions/upload-artifact@v4
+        with:
+          name: runs_ihp-sg13g2
+          path: |
+            examples/sg13g2_cace_ip__ota5t/runs/
+      # Add summary
+      - name: Add Markdown to Step Summary
+        if: matrix.pdk_family == 'ihp-sg13g2'
+        run: cat examples/sg13g2_cace_ip__ota5t/runs/*/summary.md >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,7 @@
+netlist/
+xschem/sim/
+xschem/simulations/
+runs/
+cace/templates/*.spice
+cace/templates/*.sym
+docs/
