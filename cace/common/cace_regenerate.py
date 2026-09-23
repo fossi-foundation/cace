@@ -354,6 +354,7 @@ def regenerate_netlist(datasheet, netlist_source, runtime_options, pex=False):
             magic_input += "extract path cace_extfiles\n"
             if netlist_source == "layout":
                 magic_input += "extract no all\n"
+            magic_input += "extract do unique\n"
             magic_input += "extract all\n"
             magic_input += "ext2spice lvs\n"
             if netlist_source == "pex":
@@ -369,11 +370,9 @@ def regenerate_netlist(datasheet, netlist_source, runtime_options, pex=False):
             magic_input += f"cellname delete {dname}\n"
             magic_input += f'cellname rename {dname + "_flat"} {dname}\n'
             magic_input += "extract path cace_extfiles\n"
+            magic_input += "extract do unique\n"
+            magic_input += "extract do resistance\n"
             magic_input += "extract all\n"
-            magic_input += "ext2sim labels on\n"
-            magic_input += "ext2sim -p cace_extfiles\n"
-            magic_input += "extresist tolerance 10\n"
-            magic_input += "extresist\n"
             magic_input += "ext2spice lvs\n"
             magic_input += "ext2spice cthresh 0.01\n"
             magic_input += "ext2spice extresist on\n"
@@ -394,12 +393,6 @@ def regenerate_netlist(datasheet, netlist_source, runtime_options, pex=False):
         except:
             warn("Directory for extraction files was not created.")
 
-        # Remove temporary files
-        try:
-            os.remove(os.path.join(root_path, dname + ".sim"))
-            os.remove(os.path.join(root_path, dname + ".nodes"))
-        except:
-            dbg(".sim and .nodes files were not created.")
 
         if (returncode != 0) or (need_extract and not os.path.isfile(netlist_filepath)):
             return False
