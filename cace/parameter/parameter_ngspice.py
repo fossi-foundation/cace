@@ -520,7 +520,15 @@ class ParameterNgspice(Parameter):
 
                     # Copy the .spiceinit file to the simulation directory
                     # If none, get the spiceinit file from the PDK
-                    if spiceinit_path := self.config["spiceinit_path"] == None:
+
+                    # NOTE:  was previously ":=" instead of "=";
+                    # "spiceinit_path := self.config[...] == None"
+                    # assigns the boolean to spiceinit_path rather than
+                    # the path.  With no configured path that happens to
+                    # work, but the option can never be used.
+
+                    spiceinit_path = self.config["spiceinit_path"]
+                    if spiceinit_path is None:
                         spiceinit_path = os.path.join(
                             pdk_root, pdk, "libs.tech", "ngspice", "spiceinit"
                         )
