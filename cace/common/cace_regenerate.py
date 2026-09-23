@@ -393,7 +393,6 @@ def regenerate_netlist(datasheet, netlist_source, runtime_options, pex=False):
         except:
             warn("Directory for extraction files was not created.")
 
-
         if (returncode != 0) or (need_extract and not os.path.isfile(netlist_filepath)):
             return False
 
