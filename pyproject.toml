@@ -37,4 +37,5 @@ cace = "cace.cace_cli:cli"
 cace-web = "cace.cace_web:web"
 #cace-gui = "cace.cace_gui:gui"
 
-[tool.setuptools_scm]
+[tool.black]
+target-version = ["py310"]
